@@ -1,13 +1,5 @@
 # Code and data for “Contingent Chain-of-Thought effects and causal overclaiming in LLMs”
 
-This repository is the single public home for the code, summary data and formalization of the
-manuscript:
-
-> Contingent Chain-of-Thought effects and causal overclaiming in LLMs
-> Submitted to *Patterns* (Cell Press).
-
-Contact: Zhiwen Hu (huzhiwen@zjgsu.edu.cn); Minxuan Liu.
-
 ## What is here
 
     tables/      summary tables used in the manuscript (SI Tables S1-S5, per-run accuracies, AIME aggregates)
