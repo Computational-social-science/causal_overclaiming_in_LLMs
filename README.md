@@ -1,46 +1,54 @@
-# Data for “Contingent Chain-of-Thought effects and causal overclaiming in LLMs”
+# Code and data for “Contingent Chain-of-Thought effects and causal overclaiming in LLMs”
 
-This repository holds the summary data, accuracy tables and per-experiment documentation
-for the manuscript:
+This repository is the single public home for the code, summary data and formalization of the
+manuscript:
 
 > Contingent Chain-of-Thought effects and causal overclaiming in LLMs
 > Submitted to *Patterns* (Cell Press).
 
 Contact: Zhiwen Hu (huzhiwen@zjgsu.edu.cn); Minxuan Liu.
 
-## Contents
+## What is here
 
-    tables/si_table_s1.csv                     SI Table S1 — scale dependence of Term-first (GSM8K)
-    tables/si_table_s2.csv                     SI Table S2 — behavioral outcomes, five-problem analysis
-    tables/si_table_s3.csv                     SI Table S3 — first-token peak-layer distribution
-    tables/si_table_s4.csv                     SI Table S4 — replicate variability, Figure 2
-    tables/si_table_s5.csv                     SI Table S5 — replicate variability, Figure 3
-    tables/fig2_task_heterogeneity_scores.csv  per-run accuracies, 14 CoT variants x GSM8K/MMLU/HumanEval (4 runs)
-    tables/fig2_aime2024_scores.csv            AIME 2024 aggregate per prompt (mean, SD, n)
-    tables/fig3_model_scale_scores.csv         per-run accuracies, 14 variants x 5 model scales (GSM8K, 4 runs)
+    tables/      summary tables used in the manuscript (SI Tables S1-S5, per-run accuracies, AIME aggregates)
+    evidence/    per-experiment code and the summary data it consumes (00 conceptual figure, 01 macro heterogeneity,
+                 02 state divergence, 03 logit lens), each with its own README
+    scripts/     shared plotting configuration (plot_config.py: style and export helper)
+    tests/       smoke tests over the published data files
+    formal/      Lean 4 formalization (final version r13-final: GoldenRule, Instance, Witness_GR,
+                 Witness_ModelScale, MethodologyCore, MethodologyWitness)
+    raw/         placeholder for the large raw artifacts distributed with the release (see raw/README.md)
 
-See DATA_DICTIONARY.md for columns, units and replicate definitions.
+Data dictionary: see DATA_DICTIONARY.md.
 
-## Raw data
+## Reproducing figures
 
-The full raw inference logs and the packaged AIME 2024 run data are attached to the
-release “v1.0-data” in this repository:
+Each evidence folder contains the plotting script and a README mapping every claim of the manuscript to
+its data file. From the repository root, for example:
 
-    raw_inference_logs.tar.gz     OpenCompass per-question outputs (3057 files)
-    aime2024_all_data.tar.gz      packaged AIME 2024 run data
+    python3 evidence/01-macro-heterogeneity/code/Fig3_ScalingLaws.py
 
-## Code
+Plots are exported by scripts/plot_config.py (PNG, JPG, TIFF, SVG at 400 dpi).
 
-All analysis and figure code is at https://github.com/Miyan0Shiho/patterns-repro
-and archived at Zenodo: https://doi.org/10.5281/zenodo.23410783
+## Reproducing the Lean 4 formalization
 
-## Replicate structure
+    cd formal
+    lake build
 
-Benchmark and scale experiments use four independent run-level evaluations per cell
-(GSM8K / MMLU / HumanEval / scale reruns). The AIME 2024 experiment uses 64 full-benchmark
-runs for the Standard prompt and 256 runs for Term-first (four pooled batches of 64).
-All reported SDs are sample standard deviations (n - 1).
+The proof scripts encode the finite-domain statements of the theory section; the module README describes
+which theorem corresponds to which manuscript claim.
 
-## License
+## Large raw data
 
-Data: Creative Commons Attribution 4.0 International (CC BY 4.0).
+Raw inference logs and packaged run data are attached to the release v1.0.0 of this repository; see
+raw/README.md for the download list and where to unpack each archive.
+
+## Licenses
+
+Code: MIT (LICENSE). Data and derived tables: CC BY 4.0 (LICENSE-DATA).
+Third-party benchmarks (GSM8K, AIME 2024, MMLU, CMMLU, HumanEval) are not redistributed; only derived
+statistics and prompts are included.
+
+## Citation
+
+See CITATION.cff. The archived release is deposited on Zenodo (DOI in CITATION.cff and the release page).

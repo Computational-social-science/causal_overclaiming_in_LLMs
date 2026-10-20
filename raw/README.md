@@ -1,14 +1,19 @@
-# Raw data files
+# Large raw artifacts (release assets)
 
-The full raw data are too large for the repository history and are attached to the
-repository releases:
+These files are excluded from git history and are attached to the release **v1.0.0** of this repository.
+Download them from the Releases page and unpack into this directory.
 
-    raw_inference_logs.tar.gz    OpenCompass per-question outputs (3057 files, ~289 MB uncompressed)
-    aime2024_all_data.tar.gz     packaged AIME 2024 run data (~55 MB)
+| File | Size | Needed for |
+|---|---|---|
+| raw_inference_logs.tar.gz | ~66 MB | raw OpenCompass per-question outputs (3057 files), Fig. 4 heatmap |
+| aime2024_all_data.tar.gz | ~58 MB | packaged AIME 2024 run data, Fig. 2 AIME panel |
+| aime2024_7b_pass1_n64_raw_20260528.tar.gz | ~427 MB | raw 7B AIME runs for Fig. 4 |
+| aime2024_8b_pass1_n64_raw_20260528.tar.gz | ~497 MB | raw 8B AIME runs for Fig. 4 |
 
-Download them from the Releases page of this repository, then unpack into this directory:
+Unpack instructions:
 
     tar -xzf raw_inference_logs.tar.gz
-    tar -xzf aime2024_all_data.tar.gz
+    tar -xzf aime2024_7b_pass1_n64_raw_20260528.tar.gz
+    tar -xzf aime2024_8b_pass1_n64_raw_20260528.tar.gz
 
-The summary tables actually used in the manuscript are in ../tables/.
+The summary tables actually used in the manuscript are in ../tables/ and do not require these archives.

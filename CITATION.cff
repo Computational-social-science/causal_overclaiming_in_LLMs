@@ -1,0 +1,80 @@
+cff-version: 1.2.0
+message: "If you use this code, data or formalization, please cite the archived release and the manuscript."
+title: "Contingent Chain-of-Thought effects and causal overclaiming in LLMs"
+type: software
+authors:
+  - family-names: "Liu"
+    given-names: "Minxuan"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Zhang"
+    given-names: "Ziyang"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Shao"
+    given-names: "Yunshu"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Bian"
+    given-names: "Ca"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Lei"
+    given-names: "Saihua"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Feng"
+    given-names: "Chaofan"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Liu"
+    given-names: "Junhui"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Fang"
+    given-names: "Sensen"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "You"
+    given-names: "Yiduo"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Jiang"
+    given-names: "Haihua"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Hong"
+    given-names: "Haibo"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+  - family-names: "Hu"
+    given-names: "Zhiwen"
+    affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
+license: MIT
+repository-code: "https://github.com/Computational-social-science/causal_overclaiming_in_LLMs"
+keywords:
+  - chain-of-thought
+  - prompt engineering
+  - hidden states
+  - logit lens
+  - formal verification
+  - large language models
+preferred-citation:
+  type: article
+  title: "Contingent Chain-of-Thought effects and causal overclaiming in LLMs"
+  authors:
+    - family-names: "Liu"
+      given-names: "Minxuan"
+    - family-names: "Zhang"
+      given-names: "Ziyang"
+    - family-names: "Shao"
+      given-names: "Yunshu"
+    - family-names: "Bian"
+      given-names: "Ca"
+    - family-names: "Lei"
+      given-names: "Saihua"
+    - family-names: "Feng"
+      given-names: "Chaofan"
+    - family-names: "Liu"
+      given-names: "Junhui"
+    - family-names: "Fang"
+      given-names: "Sensen"
+    - family-names: "You"
+      given-names: "Yiduo"
+    - family-names: "Jiang"
+      given-names: "Haihua"
+    - family-names: "Hong"
+      given-names: "Haibo"
+    - family-names: "Hu"
+      given-names: "Zhiwen"
+  year: 2026
+  journal: Patterns (submitted)
