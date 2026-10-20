@@ -1,0 +1,21 @@
+Problem,Condition,Correct,Tokens,Wait count
+Q1 (log),Premature convergence,Yes,"3,822",3
+Q1 (log),Delayed commitment,Yes,"3,884",5
+Q1 (log),Persistent oscillation,Yes,"3,848",1
+Q1 (log),Term-first,Yes,"5,567",20
+Q2 (geometry),Premature convergence,Yes,"2,837",15
+Q2 (geometry),Delayed commitment,Yes,"6,902",103
+Q2 (geometry),Persistent oscillation,Yes,"5,776",42
+Q2 (geometry),Term-first,Yes,"2,713",6
+Q3 (number theory),Premature convergence,Yes,"9,508",55
+Q3 (number theory),Delayed commitment,Yes,"6,760",35
+Q3 (number theory),Persistent oscillation,Yes,"11,063",73
+Q3 (number theory),Term-first,No,"6,017",22
+Q4 (combinatorics),Premature convergence,No,"16,384",265
+Q4 (combinatorics),Delayed commitment,No,"8,973",103
+Q4 (combinatorics),Persistent oscillation,No,"16,384",255
+Q4 (combinatorics),Term-first,No,"16,384",133
+Q5 (algebra),Premature convergence,No,"16,384",127
+Q5 (algebra),Delayed commitment,No,"6,509",25
+Q5 (algebra),Persistent oscillation,No,"5,056",18
+Q5 (algebra),Term-first,No,"6,975",22
