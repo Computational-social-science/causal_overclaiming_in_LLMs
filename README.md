@@ -1,5 +1,8 @@
 # Code and data for “Contingent Chain-of-Thought effects and causal overclaiming in LLMs”
 
+> **Latest release**: v1.0.3 (2026-10-22) — figure release (Figure 5 panel labels placed above the axes; Figure 2–5 exports refreshed).
+> Archived on Zenodo: <https://doi.org/10.5281/zenodo.23501242> (concept, always latest) / <https://doi.org/10.5281/zenodo.23541463> (v1.0.3).
+
 ## What is here
 
     tables/      summary tables used in the manuscript (SI Tables S1-S5, per-run accuracies, AIME aggregates)
