@@ -83,7 +83,7 @@ setup_style({
 fig, axes = plt.subplots(
     2, 2, figsize=(7.2, 3.55), dpi=300,
     sharex=True, sharey=True,
-    gridspec_kw={"wspace": 0.14, "hspace": 0.26},
+    gridspec_kw={"wspace": 0.14, "hspace": 0.36},
 )
 
 for i, cname in enumerate(CONDITIONS):
@@ -109,9 +109,11 @@ for i, cname in enumerate(CONDITIONS):
                edgecolors="white", linewidth=0.7, zorder=5)
 
     panel = chr(ord("a") + i)
-    ax.text(0.03, 0.92, f"{panel}. {LABELS[cname]}",
-            transform=ax.transAxes, ha="left", va="top",
-            fontsize=8.3, fontweight="bold", color=color_main)
+    # Panel label sits above the axes at the top-left corner (matches the submitted
+    # figure). An in-axes ax.text at (0.03, 0.92) read as a data annotation because
+    # the hidden top spine made the corner look like plot area.
+    ax.set_title(f"{panel}. {LABELS[cname]}", loc="left", pad=4,
+                 fontsize=8.3, fontweight="bold", color=color_main)
     x_text = peak_idx - 0.9 if peak_idx > num_layers - 4 else peak_idx + 0.6
     y_text = peak_val - 0.08 if peak_val > 0.82 else peak_val + 0.08
     ax.text(x_text, y_text, f"L{peak_idx}",
@@ -136,7 +138,7 @@ for i, cname in enumerate(CONDITIONS):
 
 fig.supxlabel("Layer", fontsize=8.2, y=0.038)
 fig.supylabel("Token probability", fontsize=8.2, x=0.010)
-plt.subplots_adjust(left=0.078, right=0.995, bottom=0.15, top=0.985, wspace=0.14, hspace=0.26)
+plt.subplots_adjust(left=0.078, right=0.995, bottom=0.15, top=0.940, wspace=0.14, hspace=0.36)
 
 os.makedirs(FIG_DIR, exist_ok=True)
 save_figure(fig, "Figure5_LogitLens", FIG_DIR, formats=["png", "jpg", "tiff", "svg"])
