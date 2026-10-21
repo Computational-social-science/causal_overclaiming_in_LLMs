@@ -1,12 +1,30 @@
 # Changelog
 
+## v1.0.1 — 2026-10-21
+
+Documentation and figure release. The code, the data and the formalization are unchanged from v1.0.0.
+
+- All documentation and all code comments are now in English. No Chinese text remains in the repository.
+- The plotting scripts reproduce the manuscript figures exactly: a clean checkout regenerates
+  `figures/Figure2_TaskHeterogeneity.*`, `Figure3_ScalingLaws.*`, `Figure4_ReflectionScatter.*` and
+  `Figure5_LogitLens.*` byte for byte (PNG sha256 identical to the submitted files). Figure 2 no longer
+  depends on a large backup archive; it is computed from the released per-run tables.
+- Added `figures/`: the five manuscript figures in PNG, JPG, TIFF and SVG. Figure 1 is a hand-drawn
+  vector diagram; its SVG source is in `evidence/00-fig1-conceptual/data/`.
+- Removed the stale matplotlib renderer of an earlier Figure 1 layout, together with its icon assets.
+- Removed references to internal working files that are not part of this repository, and removed tracked
+  build artefacts (`tests/__pycache__`); added a `.gitignore`.
+- Fixed a syntax error in `evidence/02-state-divergence/code/real_logit_lens_extractor.py` that
+  prevented the module from importing.
+- The raw inference archives stay attached to the v1.0.0 release; this release adds no large files.
+
 ## v1.0.0 — 2026-10-20
 
 First unified release: code, summary data and Lean 4 formalization in a single repository.
 
 - Merged the former code release (patterns-repro) and the laboratory data repository.
-- Added the final Lean 4 formalization (r13-final: GoldenRule, Instance, Witness_GR, Witness_ModelScale,
-  MethodologyCore, MethodologyWitness; lake build passing).
+- Added the Lean 4 formalization (GoldenRule, Instance, Witness_GR, Witness_ModelScale, MethodologyCore,
+  MethodologyWitness; lake build passing).
 - Removed absolute local paths from data files; large raw artifacts moved to release assets.
 - Summary tables (SI Tables S1-S5 and per-run accuracy tables) are in tables/.
 

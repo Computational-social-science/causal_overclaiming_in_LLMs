@@ -7,7 +7,7 @@ Data source: evidence/03-logit-lens/data/logit_lens_1.5b_full.json
 (The raw 15-problem logit-lens extraction is the data file itself; no external script needed for table generation.)
 
 Output: evidence/03-logit-lens/data/table_s3_peak_layers.json
-Mirrors the values reported in paper Table S3.
+Mirrors the values reported in Table S3 of the manuscript.
 """
 import json
 import sys

@@ -1,12 +1,12 @@
-"""Generate Fig3: Wait Frequency vs Accuracy scatter plot (3 models).
+"""Generate Fig4: reflection-marker frequency vs accuracy scatter plot (3 models).
 
 Data sources:
-  - 7B: DeepSeek-R1-Distill-Qwen-7B (backup archive: accuracy from summary CSV,
+  - 7B: R1-Distill-Qwen-7B (backup archive: accuracy from summary CSV,
     wait frequency from prediction JSON sample)
-  - 8B: DeepSeek-R1-Distill-Llama-8B (same pipeline)
-  - 1.5B: DeepSeek-R1-Distill-Qwen-1.5B (vLLM experiment, n=64, max_tokens=4096)
+  - 8B: R1-Distill-Llama-8B (same pipeline)
+  - 1.5B: R1-Distill-Qwen-1.5B (vLLM experiment, n=64, max_tokens=4096)
 
-Output: evidence/02-state-divergence/figures/Fig4_ReflectionScatter.{png,jpg,tiff,svg,pdf}
+Output: figures/Figure4_ReflectionScatter.{png,jpg,tiff,svg}
 """
 
 import csv
@@ -27,7 +27,8 @@ from scripts.plot_config import setup_style, save_figure, OKABE_ITO as OI
 
 # ---- Paths ----
 ROOT = Path(__file__).resolve().parents[1]  # evidence/02-state-divergence/
-FIG_DIR = ROOT / "figures"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+FIG_DIR = REPO_ROOT / "figures"
 # PAPER_FIG_DIR removed for release isolation
 
 ARCHIVE_7B = (
@@ -170,9 +171,9 @@ def extract_real_data(archive_path, model_label):
                         if p_idx not in accuracy_map:
                             accuracy_map[p_idx] = []
                         accuracy_map[p_idx].append(float(val))
-            # 遍历所有 summary 合并各 run 的准确率（同一提示词跨 run 取均值）
+            # Merge accuracy for the same prompt across runs below.
 
-    # 合并：同一提示词跨 run 取均值
+    # Average accuracy for the same prompt across runs.
     for p_idx in list(accuracy_map.keys()):
         vals = accuracy_map[p_idx]
         accuracy_map[p_idx] = float(np.mean(vals)) if vals else 0.0
@@ -328,8 +329,8 @@ def draw():
 
     # ---- Save ----
     out_paths = save_figure(
-        fig, "Fig4_ReflectionScatter", FIG_DIR,
-        formats=["png", "jpg", "tiff", "svg", "pdf"],
+        fig, "Figure4_ReflectionScatter", FIG_DIR,
+        formats=["png", "jpg", "tiff", "svg"],
         close=False,
     )
 

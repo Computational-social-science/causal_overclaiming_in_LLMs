@@ -1,40 +1,37 @@
 /-!
-MethodologyCore.lean — 方法论核心抽象引理：
-表面指标作为回答质量代理的非单调性（测度类型无关层）。
+MethodologyCore.lean — core abstract lemmas on the non-monotonicity of surface metrics used
+as proxies for answer quality (measure-type-agnostic layer).
 
-本文件提供两个与具体测度类型无关的抽象引理：
+The file provides two abstract lemmas that are independent of the concrete measure type:
 
-  * not_function_of        （定理 M2）：同一指标值对应不同准确率
-                            ⇒ 指标不是准确率的确定性函数（非函数代理）。
-                            —— 形式化论文 P1-7 观测：过早收敛与延迟承诺的
-                            峰值层分布（均为 10/15 在 L26、5/15 在 L27）相同，
-                            但 15 题准确率 13.3% ≠ 26.7%。
-  * not_monotone_sequence  （定理 M3）：有序评测格序列上存在"先降后升"的
-                            序反转 ⇒ 序列既非单调不减也非单调不增。
-                            —— 形式化模型规模反例：term-first 增益 Δ =
-                            [+1694, −809, +367, +973, +566]（百分数×100，
-                            0.5B→32B），在规模递增时先降后升（1.5B 为谷，
-                            对应重跑真值 -8.09 pp，见 Witness_ModelScale.lean
-                            line 38-44）。
+  * not_function_of (Theorem M2): the same metric value corresponds to different accuracies,
+    so the metric is not a deterministic function of accuracy (it is not a function proxy).
+    This formalizes the paper's observation that premature convergence (PC) and delayed
+    commitment (DC) have the same peak-layer distribution (10/15 at L26 and 5/15 at L27 for
+    both), yet their 15-question accuracies differ (13.3% vs 26.7%).
+  * not_monotone_sequence (Theorem M3): an ordered sequence of evaluated cells that first
+    falls and then rises contains an order reversal, so the sequence is neither non-increasing
+    nor non-decreasing.
+    This formalizes the model-scale counterexample: the term-first gain Δ =
+    [+1694, -809, +367, +973, +566] (percent x 100, 0.5B to 32B) first falls and then rises
+    as scale increases (1.5B is the trough, matching the re-run value -8.09 pp; see
+    deltaTable in Witness_ModelScale.lean).
 
-与 GoldenRule.no_universal_metric（定理 9）的关系：
-  GoldenRule.no_universal_metric 以 metric/acc 为类型参数，已经是
-  "测度类型无关的元定理"（指标严格单调被反例对击穿）。本文件补充两个
-  相邻命题：指标同值不同质（非函数代理）与序列非单调。
-
-References:
-  * docs/02_theory/METHODOLOGY_PROOF.md（完整证明）
-  * docs/02_theory/STRICT_PROOF.md §8（定理 9/10）
-  * docs/02_theory/formal/GoldenRule.lean（MetricMonotone / no_universal_metric）
+Relation to GoldenRule.no_universal_metric (Theorem 9):
+  GoldenRule.no_universal_metric already is a measure-type-agnostic meta-theorem: it takes
+  metric and acc as type parameters and refutes strict monotonicity with a counterexample
+  pair. This file adds two neighbouring propositions: the same metric value can stand for
+  different quality (no function proxy), and a sequence can be non-monotone.
 -/
 
 namespace MethodologyCore
 
 /--
-定理 M2（同值不同质 ⇒ 非函数代理）：若存在评测点对 e1, e2 使
-metric(e1) = metric(e2) 且 acc(e1) ≠ acc(e2)，则不存在函数 f : Int → Int
-使得 ∀ e, acc e = f (metric e)。即：表面指标值不能确定性地决定准确率，
-指标不是准确率的充分函数（确定性代理被否定）。
+Theorem M2 (same value, different quality, so no function proxy): if there is a pair of
+evaluated points e1, e2 with metric(e1) = metric(e2) and acc(e1) ≠ acc(e2), then there is no
+function f : Int → Int with acc e = f (metric e) for all e. In other words, the value of a
+surface metric cannot determine accuracy, so the metric is not a sufficient function of
+accuracy (a deterministic proxy is refuted).
 -/
 theorem not_function_of
     {E : Type} (metric acc : E → Int) {e1 e2 : E}
@@ -52,10 +49,11 @@ theorem not_function_of
   exact hacc hacc_eq
 
 /--
-定理 M3（序列非单调）：设 a 是三个有序评测点上的准确率/效应序列
-（对应的测度类型指标 μ 单调，如模型规模递增）。若存在序反转
-（a 0 > a 1 且 a 1 < a 2，即中间点是谷），则序列 a 既非单调不减也非
-单调不增，因而 μ 不能作为 a 的全局单调预测指标。
+Theorem M3 (the sequence is not monotone): let a be a sequence of accuracies or effects over
+three ordered evaluated points (whose corresponding measure-type index μ is monotone, for
+example increasing model scale). If the order reverses (a 0 > a 1 and a 1 < a 2, so the middle
+point is a trough), then the sequence a is neither non-increasing nor non-decreasing, and μ
+cannot serve as a globally monotone predictor of a.
 -/
 theorem not_monotone_sequence
     (a : Fin 3 → Int)

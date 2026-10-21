@@ -1,69 +1,72 @@
 /-!
-GoldenRule.lean — 提示词"无 golden rule"的严格形式化证明（最终版）。
+GoldenRule.lean — machine-checked proof that no prompt is a golden rule (final version).
 
-Design note (see FINAL_DESIGN.md, FORMAL_LEAN4.md):
-  * Model / Task / Prompt 是抽象类型参数，对应"论文实际评测到的有限族"。
-  * acc : Model → Task → Prompt → Int 是准确率（百分数 ×100 的整数刻度）。
-  * noPrompt : Prompt 是空前缀基线（论文数据中即 "Standard"）。
-  * eff 是相对空前缀基线的效应。
-  * UE（通用增强）: 该提示词相对空前缀基线，在每一个评测格都严格提升。
-  * GR（全局最优 / golden rule 强形式）: 该提示词在每一个评测格都不比任何候选差。
+Design note:
+  * Model / Task / Prompt are abstract type parameters, corresponding to the finite family
+    actually evaluated in the paper.
+  * acc : Model → Task → Prompt → Int is accuracy, encoded as an integer at a scale of
+    percent x 100.
+  * noPrompt : Prompt is the empty-prefix baseline (called "Standard" in the data).
+  * eff is the effect relative to the empty-prefix baseline.
+  * UE (universal enhancer): the prompt improves accuracy strictly in every evaluated cell
+    relative to the empty-prefix baseline.
+  * GR (global optimum, strong form of a golden rule): the prompt is nowhere worse than
+    any candidate prompt in any evaluated cell.
 
-核心主张（本文件证明的唯一命题）：
-  **在 LLM 领域，prompt 的性能依赖数据集、下游任务、模型 —— 没有 golden rule。**
+Core claim (the single proposition proved in this file):
+  In the LLM setting, prompt performance depends on the dataset, the downstream task and
+  the model: there is no golden rule.
 
-形式化覆盖：
-  - H1a 直接否定：无全局最优提示词（T1）、无通用增强提示词（T2）、总命题（T5）。
-  - H1b 依赖方向（正面形式）：效应依赖任务（T3）、效应依赖模型（T4）、
-    单格反例即可否定 UE/GR（T7/T8）。
-  - H1c 序关系：双提示词序翻转 ⇒ 无全局支配（T6）。
-  - H2 反思标记：表面指标单调性被真实反例击穿（T9/T10）。
-  - 机制层（描述性框架）：提示前缀作为隐藏状态初始化（Mediation）、
-    term-first 两阶段分解（TermFirst）。
+Formal coverage:
+  - H1a direct refutation: no globally optimal prompt (T1), no universal enhancer (T2),
+    combined statement (T5).
+  - H1b direction of dependence (positive form): effect depends on the task (T3), effect
+    depends on the model (T4); a single counterexample cell refutes UE/GR (T7/T8).
+  - H1c order relation: a two-prompt order reversal implies no global dominance (T6).
+  - H2 reflection markers: monotonicity of a surface metric is refuted by a real
+    counterexample (T9/T10).
+  - Mechanism layer (descriptive framework): the prompt prefix as initialization of the
+    hidden state (Mediation), and the two-stage decomposition of term-first (TermFirst).
 
-所有定理参数化：acc 与 noPrompt 作为显式参数，可在抽象层陈述（纯理论），
-也可用真实数据表实例化（见 Witness_GR / Witness_ModelScale / Instance）。
-证明是"反设 + 实例化矛盾"的纯构造，不依赖概率或统计。
-
-References:
-  * docs/02_theory/FORMAL_PROOF.md（数学记号）
-  * docs/02_theory/formal/FINAL_DESIGN.md（最终版设计）
-  * docs/02_theory/formal/FORMAL_LEAN4.md（LEAN4 设计）
+All theorems are parameterized: acc and noPrompt are explicit parameters, so the statements
+can be given at the abstract level (pure theory) or instantiated with real data tables (see
+Witness_GR, Witness_ModelScale and Instance). The proofs are purely constructive (assume the
+negation and instantiate the contradiction) and do not rely on probability or statistics.
 -/
 
 namespace GoldenRule
 
-/- 模型参数空间：抽象类型（论文评测到的模型集合）。 -/
+/- Model space: abstract type (the set of models evaluated in the paper). -/
 variable {Model : Type}
 
-/- 下游任务/数据集：抽象类型（论文评测到的数据集集合）。 -/
+/- Downstream tasks and datasets: abstract type (the set of datasets evaluated in the paper). -/
 variable {Task : Type}
 
-/- 提示词：抽象类型（论文评测到的提示词族）。 -/
+/- Prompts: abstract type (the family of prompts evaluated in the paper). -/
 variable {Prompt : Type}
 
-/-- 效应：相对空前缀基线 (noPrompt) 的准确率差。定义即为 Acc(p) − Acc(ε)。 -/
+/-- Effect: the accuracy difference relative to the empty-prefix baseline (noPrompt). By definition it is Acc(p) − Acc(ε). -/
 def eff (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
     (m : Model) (t : Task) (p : Prompt) : Int :=
   acc m t p - acc m t noPrompt
 
-/-- 通用增强提示词（Universal Enhancer）：
-    相对空前缀基线，在每一个评测格都严格提升准确率。 -/
+/-- Universal enhancer prompt: relative to the empty-prefix baseline, it strictly improves
+    accuracy in every evaluated cell. -/
 def UE (acc : Model → Task → Prompt → Int) (noPrompt : Prompt) (p : Prompt) : Prop :=
   ∀ (m : Model) (t : Task), eff acc noPrompt m t p > 0
 
-/-- 全局最优提示词（Golden Rule 的强形式）：
-    在每一个评测格都不比任何候选提示词差。 -/
+/-- Globally optimal prompt (strong form of a golden rule): in every evaluated cell it is
+    nowhere worse than any candidate prompt. -/
 def GR (acc : Model → Task → Prompt → Int) (p : Prompt) : Prop :=
   ∀ (m : Model) (t : Task) (p' : Prompt), acc m t p ≥ acc m t p'
 
 /--
-定理 1（无全局最优提示词）：若每个提示词 p 都存在提示词 p' 与评测格 (m,t)
-使得 acc(m,t,p') > acc(m,t,p)，则不存在全局最优提示词。
+Theorem 1 (no globally optimal prompt): if for every prompt p there is a prompt p' and an
+evaluated cell (m,t) with acc(m,t,p') > acc(m,t,p), then no globally optimal prompt exists.
 
-证明：反设存在全局最优 p*。由 GR 定义，它在所有格都不比任何 p' 差，
-即 ∀ p', acc(m,t,p*) ≥ acc(m,t,p')。但前提给出某格中 p' 严格更优，
-矛盾。
+Proof: suppose a globally optimal p* exists. By the definition of GR it is nowhere worse
+than any p', that is, acc(m,t,p*) ≥ acc(m,t,p') for all p'. But the hypothesis gives a cell
+in which some p' is strictly better, a contradiction.
 -/
 theorem no_global_optimum
     (acc : Model → Task → Prompt → Int)
@@ -75,11 +78,11 @@ theorem no_global_optimum
   exact (Int.not_lt_of_ge hge) hgt
 
 /--
-定理 2（无通用增强提示词）：若每个提示词 p 都存在评测格 (m,t)
-使得 eff(m,t,p) ≤ 0，则不存在通用增强提示词。
+Theorem 2 (no universal enhancer): if for every prompt p there is an evaluated cell (m,t)
+with eff(m,t,p) ≤ 0, then no universal enhancer exists.
 
-证明：反设存在 UE 提示词 p*。由 UE 定义，∀ 格, eff > 0。
-但前提给出某格 eff ≤ 0，矛盾。
+Proof: suppose a UE prompt p* exists. By the definition of UE, eff > 0 in every cell. But
+the hypothesis gives a cell with eff ≤ 0, a contradiction.
 -/
 theorem no_universal_enhancer
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -91,16 +94,18 @@ theorem no_universal_enhancer
   exact (Int.not_lt_of_ge hle) hgt
 
 /--
-定理 3（效应依赖任务）：若固定模型 m、提示词 p，存在两个数据集 t1, t2
-使 eff(m,t1,p) < 0 < eff(m,t2,p)，则 p 不是通用增强提示词。
+Theorem 3 (effect depends on the task): if, for a fixed model m and prompt p, there are two
+datasets t1, t2 with eff(m,t1,p) < 0 < eff(m,t2,p), then p is not a universal enhancer.
 
-这直接形式化核心主张的"prompt 性能依赖数据集"：
-同一提示词、同一模型，仅更换数据集，效应方向即可反转。
+This formalizes the part of the core claim that says prompt performance depends on the
+dataset: with the same prompt and the same model, changing only the dataset can reverse the
+sign of the effect.
 
-注：证明仅用负效应前提（eff(t1)<0 即违反 UE 的"所有格严格正"）；
-`_h2`（正效应前提）保持"效应翻转"的前提形状，以匹配数据实例化
-（Think. 在 GSM8K 负、MMLU 正），并使定理声称的是"方向反转"而非
-仅"存在反例格"。
+Note: the proof uses only the negative-effect hypothesis (eff(t1) < 0 already violates the
+"strictly positive in every cell" condition of UE); `_h2` (the positive-effect hypothesis)
+is kept to preserve the shape of an effect reversal, matching the data instantiation
+(Think. is negative on GSM8K and positive on MMLU), and to make the theorem state a
+"direction reversal" rather than merely "a counterexample cell exists".
 -/
 theorem effect_depends_on_task
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -112,14 +117,16 @@ theorem effect_depends_on_task
   exact (Int.not_lt_of_ge (Int.le_of_lt h1)) hpos
 
 /--
-定理 4（效应依赖模型）：若固定数据集 t、提示词 p，存在两个模型 m1, m2
-使 eff(m1,t,p) < 0 < eff(m2,t,p)，则 p 不是通用增强提示词。
+Theorem 4 (effect depends on the model): if, for a fixed dataset t and prompt p, there are
+two models m1, m2 with eff(m1,t,p) < 0 < eff(m2,t,p), then p is not a universal enhancer.
 
-这直接形式化核心主张的"prompt 性能依赖模型"：
-同一提示词、同一数据集，仅更换模型，效应方向即可反转。
+This formalizes the part of the core claim that says prompt performance depends on the
+model: with the same prompt and the same dataset, changing only the model can reverse the
+sign of the effect.
 
-注：同上，证明仅用负效应前提；`_h2` 保持"效应翻转"形状以匹配
-数据实例化（term-first 在 1.5B 负、3B 正）。
+Note: as above, the proof uses only the negative-effect hypothesis; `_h2` preserves the
+shape of an effect reversal to match the data instantiation (term-first is negative at 1.5B
+and positive at 3B).
 -/
 theorem effect_depends_on_model
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -131,12 +138,13 @@ theorem effect_depends_on_model
   exact (Int.not_lt_of_ge (Int.le_of_lt h1)) hpos
 
 /--
-定理 3'（效应方向依赖任务——直接结论）：若固定模型 m、提示词 p，
-存在两个数据集 t1, t2 使 eff(m,t1,p) < 0 < eff(m,t2,p)，
-则 eff(m,t1,p) < eff(m,t2,p)。
+Theorem 3' (the direction of the effect depends on the task, direct corollary): if, for a
+fixed model m and prompt p, there are two datasets t1, t2 with
+eff(m,t1,p) < 0 < eff(m,t2,p), then eff(m,t1,p) < eff(m,t2,p).
 
-这是"prompt 效应依赖数据集"的直接形式化：同一提示词、同一模型，
-仅更换数据集，效应值严格上升（从负到正）。方向变化是**结论**而非前提。
+This is the direct formalization of "prompt effects depend on the dataset": same prompt,
+same model, only the dataset changes and the effect strictly increases (from negative to
+positive). The direction change is a conclusion, not a hypothesis.
 -/
 theorem effect_differs_by_task
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -146,12 +154,13 @@ theorem effect_differs_by_task
   exact Int.lt_trans h1 h2  -- h1: e1<0, h2: 0<e2 ⇒ e1<0<e2 ⇒ e1<e2
 
 /--
-定理 4'（效应方向依赖模型——直接结论）：若固定数据集 t、提示词 p，
-存在两个模型 m1, m2 使 eff(m1,t,p) < 0 < eff(m2,t,p)，
-则 eff(m1,t,p) < eff(m2,t,p)。
+Theorem 4' (the direction of the effect depends on the model, direct corollary): if, for a
+fixed dataset t and prompt p, there are two models m1, m2 with
+eff(m1,t,p) < 0 < eff(m2,t,p), then eff(m1,t,p) < eff(m2,t,p).
 
-这是"prompt 效应依赖模型"的直接形式化：同一提示词、同一数据集，
-仅更换模型，效应值严格上升（从负到正）。方向变化是**结论**而非前提。
+This is the direct formalization of "prompt effects depend on the model": same prompt, same
+dataset, only the model changes and the effect strictly increases (from negative to
+positive). The direction change is a conclusion, not a hypothesis.
 -/
 theorem effect_differs_by_model
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -161,12 +170,11 @@ theorem effect_differs_by_model
   exact Int.lt_trans h1 h2  -- h1: e1<0, h2: 0<e2 ⇒ e1<0<e2 ⇒ e1<e2
 
 /--
-定理 5（无 golden rule 总命题）：若满足定理 1 与定理 2 的前提，
-则既不存在全局最优提示词，也不存在通用增强提示词。
+Theorem 5 (combined statement: no golden rule): if the hypotheses of Theorems 1 and 2 hold,
+then there is neither a globally optimal prompt nor a universal enhancer.
 
-这是论文核心主张的直接形式化结论：
-  "prompt 性能依赖数据集/任务/模型，没有 golden rule"
-的"没有 golden rule"部分。
+This is the direct formal conclusion of the paper's core claim: prompt performance depends
+on the dataset, task and model, so there is no golden rule.
 -/
 theorem no_golden_rule
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -178,17 +186,19 @@ theorem no_golden_rule
   | inl hgr => exact (no_global_optimum acc h1) ⟨p, hgr⟩
   | inr hue => exact (no_universal_enhancer acc noPrompt h2) ⟨p, hue⟩
 
-/-- 严格支配（Dominance）：提示词 p 在任务 t 上严格优于提示词 q。 -/
+/-- Strict dominance: prompt p is strictly better than prompt q on task t. -/
 def dominates (acc : Model → Task → Prompt → Int) (m : Model) (t : Task)
     (p q : Prompt) : Prop :=
   acc m t p > acc m t q
 
 /--
-定理 6（双提示词序关系可翻转 / 无全局支配）：固定模型 m 与两个数据集 t1, t2，
-若提示词 p 在 t1 上严格优于 q、在 t2 上严格劣于 q，则 p, q 在 {t1, t2} 上
-互不支配（即不存在一个提示词在两个数据集上都严格优于另一个）。
+Theorem 6 (the order between two prompts can reverse, that is, no global dominance): fix a
+model m and two datasets t1, t2. If prompt p is strictly better than q on t1 and strictly
+worse than q on t2, then p and q do not dominate each other on {t1, t2}: there is no prompt
+that is strictly better than the other on both datasets.
 
-对应 FORMAL_PROOF.md §2.5：提示词的相对优劣本身依赖数据集。
+This formalizes the statement that the relative ranking of two prompts depends on the
+dataset.
 -/
 theorem no_global_dominance
     (acc : Model → Task → Prompt → Int)
@@ -206,11 +216,13 @@ theorem no_global_dominance
     exact (Int.not_lt_of_ge (Int.le_of_lt h1)) hp1
 
 /--
-定理 7（单格非正效应足以否定通用增强）：若固定模型 m、任务 t、提示词 p，
-存在一个评测格使 eff(m,t,p) ≤ 0，则 p 不是通用增强提示词。
+Theorem 7 (a single non-positive effect is enough to refute universal enhancement): if, for
+a fixed model m, task t and prompt p, there is one evaluated cell with
+eff(m,t,p) ≤ 0, then p is not a universal enhancer.
 
-这是 T2 的局部形式：否定一个固定 p 只需一个反例格，无需穷举所有 p。
-支撑"效应依赖"主张的反面：单格即可推翻"通用"。
+This is the local form of T2: refuting a fixed p needs only one counterexample cell, without
+enumerating all p. It supports the reverse side of the "effect depends" claim: one cell
+suffices to refute "universal".
 -/
 theorem not_UE_of_nonpositive_effect
     (acc : Model → Task → Prompt → Int) (noPrompt : Prompt)
@@ -222,10 +234,11 @@ theorem not_UE_of_nonpositive_effect
   exact Int.not_lt_of_ge h hgt
 
 /--
-定理 8（单格被更优提示词击败足以否定全局最优）：若固定模型 m、任务 t，
-存在提示词 q 使 acc(m,t,q) > acc(m,t,p)，则 p 不是全局最优提示词。
+Theorem 8 (a single cell in which a better prompt wins is enough to refute global
+optimality): if, for a fixed model m and task t, there is a prompt q with
+acc(m,t,q) > acc(m,t,p), then p is not a globally optimal prompt.
 
-这是 T1 的局部形式：否定一个固定 p 只需一个更优格。
+This is the local form of T1: refuting a fixed p needs only one cell with a better prompt.
 -/
 theorem not_GR_of_strictly_better_prompt
     (acc : Model → Task → Prompt → Int)
@@ -236,21 +249,22 @@ theorem not_GR_of_strictly_better_prompt
   have hge : acc m t p ≥ acc m t q := hgr m t q
   exact Int.not_lt_of_ge hge h
 
-/-- 严格单调表面指标假设：指标高 ⇒ 准确率严格高。 -/
+/-- Strictly monotone surface-metric hypothesis: a higher metric implies strictly higher accuracy. -/
 def MetricMonotone {Prompt : Type} (metric acc : Prompt → Int) : Prop :=
   ∀ p p', metric p > metric p' → acc p > acc p'
 
-/-- 弱单调表面指标假设：指标不低 ⇒ 准确率不低。 -/
+/-- Weakly monotone surface-metric hypothesis: a metric that is not lower implies accuracy that is not lower. -/
 def WeakMetricMonotone {Prompt : Type} (metric acc : Prompt → Int) : Prop :=
   ∀ p p', metric p ≥ metric p' → acc p ≥ acc p'
 
 /--
-定理 9（任何表面指标的严格单调均被反例击穿）：若存在提示词对 p1, p2
-使 metric(p1) > metric(p2) 且 acc(p1) ≤ acc(p2)，则该指标不可能是
-严格单调的准确率预测器。
+Theorem 9 (any claim of strict monotonicity for a surface metric is refuted by a
+counterexample): if there is a pair of prompts p1, p2 with metric(p1) > metric(p2) and
+acc(p1) ≤ acc(p2), then the metric cannot be a strictly monotone predictor of accuracy.
 
-H2 的抽象层：反思标记频率是这样一个表面指标（metric = Wait 频次，
-acc = 准确率），真实数据提供反例对（见 Instance.lean）。
+This is the abstract layer of H2: reflection-marker frequency is such a surface metric
+(metric = "wait" count, acc = accuracy), and the real data supply the counterexample pair
+(see Instance.lean).
 -/
 theorem no_universal_metric
     {Prompt : Type} (metric acc : Prompt → Int) {p1 p2 : Prompt}
@@ -262,9 +276,9 @@ theorem no_universal_metric
   exact Int.not_lt_of_ge hacc hm
 
 /--
-定理 10（任何表面指标的弱单调也被反例击穿）：若存在提示词对 p1, p2
-使 metric(p1) > metric(p2) 且 acc(p1) < acc(p2)，则该指标不可能是
-弱单调的准确率预测器。
+Theorem 10 (any claim of weak monotonicity for a surface metric is refuted by a
+counterexample): if there is a pair of prompts p1, p2 with metric(p1) > metric(p2) and
+acc(p1) < acc(p2), then the metric cannot be a weakly monotone predictor of accuracy.
 -/
 theorem no_universal_weak_metric
     {Prompt : Type} (metric acc : Prompt → Int) {p1 p2 : Prompt}
@@ -278,27 +292,34 @@ theorem no_universal_weak_metric
 end GoldenRule
 
 /-!
-# 提示前缀作为隐藏状态初始化的形式化（FORMAL_PROOF.md §3.1）
+# Formalizing the prompt prefix as initialization of the hidden state
+(mechanism section of the manuscript)
 
-机制声称：提示前缀的作用是设定模型后续展开的动力学初始条件——它不编码
-具体解题步骤，而是初始化隐藏状态。形式化的核心是"上下文状态中介同一性"：
+Mechanism claim: the role of a prompt prefix is to set the initial condition of the dynamics
+that the model subsequently unfolds. It does not encode the individual solution steps; it
+initializes the hidden state. The core of the formalization is the identity that context
+states mediate:
 
-  若两个提示词在给定查询上产生相同的上下文隐藏状态，则它们产生相同的
-  输出（首 token 分布与完整补全分布）。
+  If two prompts produce the same context hidden state on a given query, they produce the
+  same output (first-token distribution and full-completion distribution).
 
-证明是确定性函数的同一性传播（`congrArg`），不依赖概率或测度论。
-这是描述性框架的形式化：说明"提示词效果必须经由隐藏状态传播"在自回归
-Transformer 中具有严格含义，但不声称"初始状态不同必然导致正确答案不同"。
+The proof is identity propagation through a deterministic function (`congrArg`); it does not
+rely on probability or measure theory. This is a formalization of a descriptive framework: it
+gives precise meaning, in an autoregressive Transformer, to "prompt effects must propagate
+through the hidden state", but it does not claim that a different initial state necessarily
+leads to a different correct answer.
 -/
 namespace Mediation
 
 /--
-定理 M1（上下文状态中介同一性）：若两个提示词 p1, p2 在查询 q 上产生
-相同的上下文隐藏状态，则任何以隐藏状态为输入的解码算子 dec 都给出相同输出。
+Theorem M1 (identity mediated by the context state): if two prompts p1, p2 produce the same
+context hidden state on a query q, then any decoding operator dec that takes a hidden state
+as input yields the same output.
 
-这形式化了"提示词对后续计算的影响必须经由初始状态传播"：
-相同初始状态 ⇒ 相同后续输出。反方向并不必然成立（不同隐藏状态也可能
-被同一解码算子映射到相同输出）。
+This formalizes "a prompt's effect on subsequent computation must propagate through the
+initial state": the same initial state implies the same subsequent output. The converse does
+not necessarily hold (different hidden states can be mapped to the same output by the same
+decoding operator).
 -/
 theorem mediation_identity
     {Prompt Query Hidden Output : Type} (enc : Prompt → Query → Hidden)
@@ -308,10 +329,12 @@ theorem mediation_identity
   exact congrArg dec h
 
 /--
-推论 M2/M3（首 token 分布与逐层轨迹的中介同一性）：
-首 token 分布 Head_θ 和逐层轨迹 f = Layer∘…∘Layer 都是隐藏状态的确定性
-函数，因此它们是 M1 在特定解码算子下的特例（证明体与 M1 相同，仅换
-dec 为 head / f）。这里列出两个命名实例，便于论文按语义引用。
+Corollary M2/M3 (mediation identity for the first-token distribution and for the layer-wise
+trajectory): the first-token distribution Head_θ and the layer-wise trajectory
+f = Layer ∘ ... ∘ Layer are both deterministic functions of the hidden state, hence they are
+instances of M1 under a particular decoding operator (the proof term is the same as M1, with
+dec replaced by head / f). Two named instances are listed here so that the manuscript can
+refer to them by meaning.
 -/
 theorem mediation_identity_first_token
     {Prompt Query Hidden Output : Type} (enc : Prompt → Query → Hidden)
@@ -328,32 +351,39 @@ theorem mediation_identity_trajectory
 end Mediation
 
 /-!
-# term-first 两阶段分解的形式化（FORMAL_PROOF.md §3.2）
+# Formalizing the two-stage decomposition of term-first
+(mechanism section of the manuscript)
 
-机制声称：term-first 提示词把"问题结构"生成与"最终答案"生成分开，因而可分解。
-形式化的关键洞察：**这个分解不是无条件恒等式，而是由"中介充分性"条件推出**。
+Mechanism claim: a term-first prompt separates the generation of the problem structure from
+the generation of the final answer, and is therefore decomposable. The key insight of the
+formalization is that this decomposition is not an unconditional identity; it follows from a
+"mediation sufficiency" condition.
 
-  全概率公式（前提）：
+  Law of total probability (hypothesis):
     M(A|Q,p) = Σ_S M(A|Q,S,p) · M(S|Q,p)
-  中介充分性（前提）：
-    ∀ Q S, M(A|Q,S,p) = M(A|Q,S)     （给定结构 S 后，答案分布不再依赖前缀 p）
-  结论：
+  Mediation sufficiency (hypothesis):
+    ∀ Q S, M(A|Q,S,p) = M(A|Q,S)     (given the structure S, the answer distribution no
+                                      longer depends on the prefix p)
+  Conclusion:
     M(A|Q,p) = Σ_S M(A|Q,S) · M(S|Q,p)
 
-证明：把中介充分性代入全概率公式的求和项。概率函数用 Rat 表示
-（核心库无实数），有限段集合用 List 表示。
+Proof: substitute mediation sufficiency into the summands of the law of total probability.
+Probability functions are represented by Rat (the core library has no reals) and the finite
+segment set by a List.
 -/
 namespace TermFirst
 
 /--
-定理 TF1（term-first 两阶段分解）：给定全概率公式与中介充分性条件，
-则答案分布可分解为"结构生成 × 给定结构的答案分布"。
+Theorem TF1 (two-stage decomposition of term-first): given the law of total probability and
+the mediation sufficiency condition, the answer distribution decomposes into "structure
+generation" times "answer distribution given the structure".
 
-- 前提 h_total：M(A|Q,p) = Σ_S M(A|Q,S,p)·M(S|Q,p)（全概率公式）
-- 前提 h_med ：∀ S∈segs, M(A|Q,S,p) = M(A|Q,S)（中介充分性）
-- 结论      ：M(A|Q,p) = Σ_S M(A|Q,S)·M(S|Q,p)
+- Hypothesis h_total: M(A|Q,p) = Σ_S M(A|Q,S,p)·M(S|Q,p) (law of total probability)
+- Hypothesis h_med : ∀ S ∈ segs, M(A|Q,S,p) = M(A|Q,S) (mediation sufficiency)
+- Conclusion        : M(A|Q,p) = Σ_S M(A|Q,S)·M(S|Q,p)
 
-证明：rw 展开 h_total 后，用 List.map_eq_map_iff 逐项替换求和项。
+Proof: rewrite with h_total, then replace the summands one by one using
+List.map_eq_map_iff.
 -/
 theorem two_stage_decomposition
     {Query Prompt Seg : Type} (segs : List Seg)
@@ -366,8 +396,8 @@ theorem two_stage_decomposition
     (h_med : ∀ s ∈ segs, probGiven q p s = probPlain q s) :
     probAnswer q p = (segs.map (fun s => probPlain q s * probStruct q p s)).sum := by
   rw [h_total]
-  -- 逐项替换：对任意 s∈segs，probGiven q p s = probPlain q s
-  -- 用 List.map_eq_map_iff 证明两侧的 map 相等，再 congrArg 到 sum
+  -- Replace term by term: for every s ∈ segs, probGiven q p s = probPlain q s
+  -- Use List.map_eq_map_iff to show the two maps are equal, then congrArg to sum
   apply congrArg List.sum
   rw [List.map_eq_map_iff]
   intro s hs
