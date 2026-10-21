@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.0.2 — 2026-10-21
+
+Figure release. Code, data and formalization are unchanged from v1.0.1.
+
+- Figure 3 now labels every panel with the model family (Qwen2.5-0.5B, Qwen2.5-1.5B, Qwen2.5-3B,
+  Qwen2.5-7B, Qwen2.5-32B), matching the figure caption and the model actually evaluated.
+- JPG and TIFF exports now carry the physical resolution in their metadata, so every bitmap states
+  400 dpi as required for submission.
+- Figures regenerated; the PNG output is unchanged except for Figure 3.
+
 ## v1.0.1 — 2026-10-21
 
 Documentation and figure release. The code, the data and the formalization are unchanged from v1.0.0.
