@@ -434,7 +434,11 @@ def _save_via_pil(
         img = background
     elif img.mode == "RGBA":
         img = img.convert("RGB")
-    img.save(out_path, format=spec["pil_format"], **spec["pil_kwargs"])
+    pil_kwargs = dict(spec["pil_kwargs"])
+    if dpi:
+        # Embed the physical resolution in JPG/TIFF; journals check the DPI tag.
+        pil_kwargs.setdefault("dpi", (dpi, dpi))
+    img.save(out_path, format=spec["pil_format"], **pil_kwargs)
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
