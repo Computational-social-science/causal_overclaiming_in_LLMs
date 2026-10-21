@@ -12,6 +12,8 @@ Figure release. Code, data and formalization are unchanged from v1.0.2.
 - No changes to data, scripts other than the Figure 5 label placement, or the
   Lean formalization.
 
+Archived on Zenodo: 10.5281/zenodo.23541463 (concept: 10.5281/zenodo.23501242).
+
 ## v1.0.2 — 2026-10-21
 
 Figure release. Code, data and formalization are unchanged from v1.0.1.
