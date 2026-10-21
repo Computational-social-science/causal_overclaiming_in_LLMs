@@ -1,9 +1,9 @@
 """
-Fig2: Model Scale — CoT effect across Qwen2.5 0.5B->32B on GSM8K.
+Fig3: Model Scale — CoT effect across Qwen2.5 0.5B->32B on GSM8K.
 Highlights term-first as a distinct bar among CoT variants.
 
 Reads from: evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv
-Output to: evidence/01-macro-heterogeneity/figures/
+Output: figures/Figure3_ScalingLaws.{png,jpg,tiff,svg}
 """
 
 import matplotlib.pyplot as plt
@@ -20,7 +20,7 @@ from scripts.plot_config import setup_style, save_figure, sequential_from_cmap, 
 # ---- Paths ----
 HERE = Path(__file__).resolve().parent
 DATA_DIR = HERE.parent / "data"
-FIG_DIR = HERE.parent / "figures"
+FIG_DIR = HERE.parent.parent.parent / "figures"
 CSV_PATH = DATA_DIR / "fig2_model_scale_scores.csv"
 
 # ---- Style ----
@@ -32,7 +32,7 @@ MODELS = ['0.5B', '1.5B', '3B', '7B', '32B']
 BAR_COLORS = sequential_from_cmap(5, "Blues")
 TERMFIRST_COLOR = OI["vermillion"]  # stands out against blue gradient
 RUNS_PER_MODEL = 4
-XLIM_MAP = {'0.5B': (-2, 20), '1.5B': (-10, 2), '3B': (-5, 6),
+XLIM_MAP = {'0.5B': (-2, 20), '1.5B': (-12, 2), '3B': (-5, 6),
             '7B': (-3, 12), '32B': (-3, 8)}
 
 TERMFIRST_LABEL = "Term first, then reasoning."  # matches CSV instruction column
@@ -66,14 +66,12 @@ def draw():
     instructions_full, _ = extract_model(rows, '0.5B')
 
     # Find indices
-    # 'Standard' is the baseline; TERMFIRST_LABEL marks term-first;
-    # all other rows are conventional CoT variants.
     termfirst_idx = None
     standard_indices = []
     for i, instr in enumerate(instructions_full):
         if instr == TERMFIRST_LABEL:
             termfirst_idx = i
-        elif instr != 'Standard':
+        elif instr not in ['Standard', 'Baseline_direct', TERMFIRST_LABEL]:
             standard_indices.append(i)
 
     # Standard prompt labels (for y-axis)
@@ -99,8 +97,6 @@ def draw():
                      alpha=0.7, linewidth=0.5, capsize=1.5)
 
         # Term-first - highlight with distinct color + wider bar
-        if termfirst_idx is None:
-            continue
         tf_pc = pc[termfirst_idx]
         tf_err = err[termfirst_idx]
         # Place term-first at the top of the bars
@@ -115,7 +111,7 @@ def draw():
         ax.annotate(f'{tf_pc:+.1f}', xy=(tf_pc, tf_y),
                      xytext=(offset, 0), textcoords='offset fontsize',
                      fontsize=6, fontweight='bold', color=TERMFIRST_COLOR,
-                     va='center')
+                     va='center', ha='left' if tf_pc >= 0 else 'right')
 
         ax.axvline(x=0, color='black', linestyle='-', linewidth=0.5)
         ax.spines['top'].set_visible(False)
@@ -124,9 +120,9 @@ def draw():
         ax.spines['bottom'].set_linewidth(0.5)
         ax.yaxis.set_visible(False)
         ax.set_title(name, fontsize=8, fontweight='bold', pad=10, color=BAR_COLORS[i])
-        # x-axis label matches Fig 1 ('ΔACC (pp)'); shown on every panel
+        # x-axis label matches Fig 1 (ΔACC (%)); shown on every panel
         # for consistency with Fig 1's layout (one label per panel).
-        ax.set_xlabel(r'$\Delta$ACC (pp)', fontsize=7)
+        ax.set_xlabel(r'$\Delta$ACC (%)', fontsize=7)
         ax.set_xlim(XLIM_MAP[name])
         ax.grid(axis='x', linestyle='--', alpha=0.3, linewidth=0.3)
 
@@ -139,9 +135,8 @@ def draw():
             ax.yaxis.set_visible(True)
             ax.yaxis.set_tick_params(width=0)
 
-    save_figure(fig, "Fig3_ScalingLaws", FIG_DIR)
-
-    # Note: paper/figures/ copy removed for release isolation
+    save_figure(fig, "Figure3_ScalingLaws", FIG_DIR,
+                formats=["png", "jpg", "tiff", "svg"])
     plt.close(fig)
 
 if __name__ == "__main__":

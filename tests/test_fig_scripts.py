@@ -24,22 +24,21 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Mapping: (script_path, expected_output_basename, [4 formats])
 FIG_SCRIPTS = [
-    (REPO_ROOT / "evidence" / "00-fig1-conceptual" / "code" / "build_concept_image.py",
-     "Fig1_ConceptualFramework",
-     ["png", "jpg", "tiff", "svg"]),
     (REPO_ROOT / "evidence" / "01-macro-heterogeneity" / "code" / "Fig2_TaskHeterogeneity.py",
-     "Fig2_TaskHeterogeneity",
+     "Figure2_TaskHeterogeneity",
      ["png", "jpg", "tiff", "svg"]),
     (REPO_ROOT / "evidence" / "01-macro-heterogeneity" / "code" / "Fig3_ScalingLaws.py",
-     "Fig3_ScalingLaws",
+     "Figure3_ScalingLaws",
      ["png", "jpg", "tiff", "svg"]),
     (REPO_ROOT / "evidence" / "02-state-divergence" / "code" / "Fig4_ReflectionScatter.py",
-     "Fig4_ReflectionScatter",
+     "Figure4_ReflectionScatter",
      ["png", "jpg", "tiff", "svg"]),
     (REPO_ROOT / "evidence" / "03-logit-lens" / "code" / "Fig5_LogitLens.py",
-     "Fig5_LogitLens",
+     "Figure5_LogitLens",
      ["png", "jpg", "tiff", "svg"]),
 ]
+
+# Manuscript Figure 1 is a hand-drawn vector diagram and has no generating script.
 
 
 def run_one(script: Path, basename: str, formats: list[str]) -> tuple[bool, str]:
@@ -50,7 +49,7 @@ def run_one(script: Path, basename: str, formats: list[str]) -> tuple[bool, str]
     if not script.exists():
         return False, f"script not found: {script}"
 
-    figures_dir = script.parent.parent / "figures"
+    figures_dir = REPO_ROOT / "figures"
     if not figures_dir.exists():
         return False, f"figures dir missing: {figures_dir}"
 

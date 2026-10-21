@@ -51,8 +51,9 @@ Per-cell replicate summary for the five model scales (GSM8K).
 
 ## tables/fig2_task_heterogeneity_scores.csv
 
-Raw per-run accuracies behind Figure 2 for GSM8K, MMLU and CMMLU (evidence copy) and
-HumanEval.
+Raw per-run accuracies behind Figure 2 for GSM8K, MMLU and HumanEval (four run-level
+evaluations per prompt). The file also carries CMMLU columns from an early exploratory run;
+they are kept for completeness and are not used in the manuscript.
 
     Instruction    prompting strategy
     <dataset>_R1 … R4   pass@1 in percent for each of four run-level evaluations
@@ -75,11 +76,12 @@ Raw per-run accuracies behind Figure 3 (GSM8K, five Qwen2.5 scales).
 
 ## Code and formalization (not tabular)
 
-    evidence/00-fig1-conceptual/      conceptual figure builder and its input svg/png assets
+    evidence/00-fig1-conceptual/      conceptual figure (Figure 1): svg source and exported files
     evidence/01-macro-heterogeneity/  prompt-variant accuracy code and summary CSVs behind Figures 2-3
     evidence/02-state-divergence/     reflection-marker code and hidden-state JSON behind Figure 4
     evidence/03-logit-lens/           Logit Lens trajectories, peak-layer computation, Figure 5
     scripts/plot_config.py            shared style and 400-dpi export helper
     tests/                            smoke tests over the published data files
-    formal/                           Lean 4 formalization (r13-final); see formal/README.md
+    formal/                           Lean 4 formalization; see formal/README.md
     raw/                              download instructions for release-attached raw artifacts
+    figures/                          the five manuscript figures (PNG, JPG, TIFF, SVG)

@@ -7,20 +7,29 @@
                  02 state divergence, 03 logit lens), each with its own README
     scripts/     shared plotting configuration (plot_config.py: style and export helper)
     tests/       smoke tests over the published data files
-    formal/      Lean 4 formalization (final version r13-final: GoldenRule, Instance, Witness_GR,
-                 Witness_ModelScale, MethodologyCore, MethodologyWitness)
+    formal/      Lean 4 formalization (GoldenRule, Instance, Witness_GR, Witness_ModelScale,
+                 MethodologyCore, MethodologyWitness)
+    figures/     the five manuscript figures in PNG, JPG, TIFF and SVG
     raw/         placeholder for the large raw artifacts distributed with the release (see raw/README.md)
 
 Data dictionary: see DATA_DICTIONARY.md.
 
-## Reproducing figures
+## Figures
 
-Each evidence folder contains the plotting script and a README mapping every claim of the manuscript to
-its data file. From the repository root, for example:
+The five files in `figures/` are the figures of the manuscript, in the four formats of the submission
+(PNG, JPG, TIFF, SVG; bitmaps at 400 dpi, TIFF for uploading). Figures 2-5 are regenerated from data by
+the scripts below, run from the repository root; each run rewrites its `figures/FigureN_*` files in all
+four formats:
 
-    python3 evidence/01-macro-heterogeneity/code/Fig3_ScalingLaws.py
+    python3 evidence/01-macro-heterogeneity/code/Fig2_TaskHeterogeneity.py # figures/Figure2_TaskHeterogeneity.*
+    python3 evidence/01-macro-heterogeneity/code/Fig3_ScalingLaws.py       # figures/Figure3_ScalingLaws.*
+    python3 evidence/02-state-divergence/code/Fig4_ReflectionScatter.py    # figures/Figure4_ReflectionScatter.*
+    python3 evidence/03-logit-lens/code/Fig5_LogitLens.py                  # figures/Figure5_LogitLens.*
 
-Plots are exported by scripts/plot_config.py (PNG, JPG, TIFF, SVG at 400 dpi).
+Figure 1 is a hand-drawn vector diagram rather than a data plot: `evidence/00-fig1-conceptual/data/`
+holds its SVG source and `figures/Figure1_ConceptualFramework.*` the exported files used in the
+manuscript. Each script documents its data sources at the top, and the per-folder README maps every
+manuscript claim to its data file. Plots are exported through `scripts/plot_config.py`.
 
 ## Reproducing the Lean 4 formalization
 

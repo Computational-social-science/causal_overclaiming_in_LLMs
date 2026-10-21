@@ -1,19 +1,19 @@
 """
-Plot Config — 通用科学论文作图配置模块。
+Plot Config — shared module for scientific figure configuration.
 
-设计原则:
-  1. 零论文依赖 — 不包含任何具体论文的概念/颜色映射
-  2. Layer 分离 — 色板 → 语义角色 → 样式 → 导出，各层独立
-  3. dict over mode — rcParams 用 dict 覆盖，不锁入固定模式
+Design principles:
+  1. No paper dependencies — no paper-specific concepts or color mappings.
+  2. Layer separation — palette, semantic roles, style, and export are independent layers.
+  3. dict over mode — rcParams are overridden with dicts, not locked into a fixed mode.
 
 Usage:
   from scripts.plot_config import setup_style, save_figure, OKABE_ITO as OI
 
-  setup_style()                               # 仅基础样式
-  setup_style({"font.size": 9, "figure.dpi": 200})  # 灵活覆盖
+  setup_style()                               # base style only
+  setup_style({"font.size": 9, "figure.dpi": 200})  # flexible overrides
 
   save_figure(fig, "Fig1", out_dir="./figures")
-  # → Fig1.png, Fig1.jpg, Fig1.tiff, Fig1.svg (全部 400 DPI)
+  # -> Fig1.png, Fig1.jpg, Fig1.tiff, Fig1.svg (all 400 DPI)
 
   save_figure(fig, "Fig1", out_dir="./figures",
               formats=["png", "pdf"], dpi=600)
@@ -32,7 +32,7 @@ import numpy as np
 from PIL import Image
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  Layer 1 — 原始色板（纯数据，不含论文语义）                                ║
+# ║  Layer 1 — Raw palette (pure data, no paper semantics)                     ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 OKABE_ITO: dict[str, str] = {
@@ -58,7 +58,7 @@ OKABE_ITO_LIST: list[str] = [
     OKABE_ITO["black"],
 ]
 
-# Paul Tol "Bright" qualitative — 备选，Okabe-Ito 不够时补充
+# Paul Tol "Bright" qualitative palette — fallback when Okabe-Ito is not enough
 TOL_BRIGHT: dict[str, str] = {
     "blue":    "#4477AA",
     "cyan":    "#66CCEE",
@@ -83,16 +83,16 @@ TOL_BRIGHT_LIST: list[str] = [
 def sequential_from_cmap(
     n: int, cmap_name: str = "Blues", start: float = 0.25, stop: float = 0.90
 ) -> list[str]:
-    """从 matplotlib colormap 中取 n 级均匀分布的 hex 色。
+    """Return n evenly spaced hex colors from a matplotlib colormap.
 
     Args:
-        n: 取几个颜色
-        cmap_name: matplotlib colormap 名 ("Blues", "Oranges", "Greens", ...)
-        start: 起始位置 (0-1), 避免太浅
-        stop: 终止位置 (0-1), 避免太深
+        n: number of colors to sample
+        cmap_name: matplotlib colormap name ("Blues", "Oranges", "Greens", ...)
+        start: start position (0-1); avoids colors that are too light
+        stop: stop position (0-1); avoids colors that are too dark
 
     Returns:
-        n 个 hex 色码构成的 list
+        list of n hex color codes
     """
     cmap = plt.get_cmap(cmap_name)
     return [
@@ -102,17 +102,17 @@ def sequential_from_cmap(
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  Layer 2 — 通用语义角色（领域无关）                                        ║
+# ║  Layer 2 — Common semantic roles (domain independent)                      ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 class Roles:
-    """通用语义颜色角色。
+    """Common semantic color roles.
 
-    使用方式:
+    Usage:
         from scripts.plot_config import ROLES
         ax.plot(..., color=ROLES.negative)
 
-    每个角色的 hex 值来自 Layer1，修改只需要改 OKABE_ITO，角色自动跟随。
+    Each role takes its hex value from Layer 1; changing OKABE_ITO updates every role.
     """
 
     def __init__(self, palette: dict[str, str]) -> None:
@@ -139,7 +139,7 @@ class Roles:
     @property
     def muted(self) -> str:      return self._p["gray"]
 
-    # 通用数据分类 — 无特殊语义时用
+    # Generic data categories — used when no specific semantics apply
     @property
     def data_1(self) -> str:     return self._p["orange"]
     @property
@@ -162,11 +162,11 @@ ROLES = Roles(OKABE_ITO)
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  Layer 3 — rcParams（基础 + 灵活覆盖）                                     ║
+# ║  Layer 3 — rcParams (base + flexible overrides)                            ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 STYLE_BASE: dict = {
-    # ── 字体 ──
+    # ── fonts ──
     "font.family":      "sans-serif",
     "font.sans-serif":  ["Arial", "Helvetica", "DejaVu Sans"],
     "font.size":        8,
@@ -176,11 +176,11 @@ STYLE_BASE: dict = {
     "ytick.labelsize":  8,
     "legend.fontsize":  8,
     "figure.titlesize": 10,
-    # ── 字体嵌入（LaTeX 兼容） ──
+    # ── font embedding (LaTeX compatible) ──
     "pdf.fonttype":     42,
     "ps.fonttype":      42,
     "svg.fonttype":     "none",
-    # ── 刻度 & 轴线 ──
+    # ── ticks and axes ──
     "axes.linewidth":       0.5,
     "xtick.major.width":    0.5,
     "ytick.major.width":    0.5,
@@ -190,23 +190,23 @@ STYLE_BASE: dict = {
     "ytick.major.size":     3.0,
     "xtick.direction":      "out",
     "ytick.direction":      "out",
-    # ── 图例 ──
+    # ── legend ──
     "legend.frameon":       False,
     "legend.handlelength":  1.2,
     "legend.handleheight":  0.7,
     # ── spines ──
     "axes.spines.top":      False,
     "axes.spines.right":    False,
-    # ── 网格 ──
+    # ── grid ──
     "axes.grid":            False,
     "grid.alpha":           0.3,
     "grid.linewidth":       0.3,
     "grid.linestyle":       "--",
-    # ── 默认色轮 ──
+    # ── default color cycle ──
     "axes.prop_cycle":      plt.cycler(color=OKABE_ITO_LIST),
 }
 
-# 预设覆盖 — 按场景提供，可自由 merge
+# Preset overrides — provided per scenario, free to merge
 STYLE_TALK: dict = {
     "font.size":        14,
     "axes.labelsize":   14,
@@ -225,7 +225,7 @@ STYLE_POSTER: dict = {
     "legend.fontsize":  16,
 }
 
-# 3D 图常用覆盖
+# Common overrides for 3D figures
 STYLE_3D: dict = {
     "font.size":        9,
     "axes.labelsize":   10,
@@ -237,7 +237,7 @@ STYLE_3D: dict = {
     "axes.spines.right": True,
 }
 
-# 热力图常用覆盖
+# Common overrides for heatmaps
 STYLE_HEATMAP: dict = {
     "font.size":        7,
     "axes.labelsize":   8,
@@ -247,30 +247,30 @@ STYLE_HEATMAP: dict = {
 
 
 def setup_style(overrides: dict | None = None) -> None:
-    """应用基础 rcParams，可选覆盖。
+    """Apply the base rcParams, with optional overrides.
 
     Args:
-        overrides: 要覆盖/追加的 rcParams dict。
-                   None 则只应用 STYLE_BASE。
-                   可传入 STYLE_3D, STYLE_TALK 等预设或自定义 dict。
-                   多个预设需自行 merge:
+        overrides: rcParams dict to override or extend.
+                   If None, only STYLE_BASE is applied.
+                   Presets such as STYLE_3D or STYLE_TALK, or a custom dict, may be passed.
+                   Merge multiple presets yourself:
                      setup_style({**STYLE_BASE, **STYLE_3D,
                                   "figure.dpi": 200})
 
     Examples:
-        # 最简 — 只应用基础
+        # Minimal — base style only
         setup_style()
 
-        # 覆盖字号
+        # Override the font size
         setup_style({"font.size": 7})
 
-        # 报告/演讲用
+        # For talks
         setup_style(STYLE_TALK)
 
-        # 3D 图
+        # 3D figures
         setup_style(STYLE_3D)
 
-        # 自定义合并
+        # Custom merge
         setup_style({**STYLE_BASE, "font.size": 10,
                      "xtick.direction": "in"})
     """
@@ -280,20 +280,20 @@ def setup_style(overrides: dict | None = None) -> None:
 
 
 def reset_style() -> None:
-    """重置为 matplotlib 默认样式。"""
+    """Reset to the matplotlib default style."""
     plt.rcdefaults()
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  Layer 4 — 导出引擎                                                        ║
+# ║  Layer 4 — Export engine                                                   ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
-# 内部配置 — 不与论文语义耦合
+# Internal configuration — decoupled from the paper semantics
 #
-# 实现细节:
-#   - PNG/SVG/PDF: matplotlib 原生输出
-#   - JPG/TIFF: 先通过 RGBA buffer 渲染 → PIL 转码压缩
-#     matplotlib 的 pil_kwargs 在部分后端不生效，用 PIL 直接处理更可靠
+# Implementation notes:
+#   - PNG/SVG/PDF: native matplotlib output
+#   - JPG/TIFF: render to an RGBA buffer, then transcode and compress with PIL
+#     matplotlib pil_kwargs do not take effect on some backends; handling the file with PIL is more reliable
 
 _FORMAT_SPECS: dict[str, dict] = {
     "png": {
@@ -324,11 +324,11 @@ _FORMAT_SPECS: dict[str, dict] = {
     },
 }
 
-# 常用组合
+# Common combinations
 FORMATS_ALL = ["png", "jpg", "tiff", "svg"]
 FORMATS_VECTOR = ["pdf", "svg"]
 FORMATS_RASTER = ["png", "jpg", "tiff"]
-FORMATS_PUBLICATION = ["pdf", "png", "svg"]  # 投稿最常用
+FORMATS_PUBLICATION = ["pdf", "png", "svg"]  # most common for submission
 
 
 def save_figure(
@@ -340,33 +340,33 @@ def save_figure(
     close: bool = True,
     verbose: bool = True,
 ) -> list[Path]:
-    """一行输出多种格式。
+    """Save one figure in several formats at once.
 
     Args:
-        fig: matplotlib Figure 对象
-        name: 文件名（不含扩展名），如 "Fig1_BarChart"
-        out_dir: 输出目录
-        formats: 输出格式列表，默认 ["png","jpg","tiff","svg"]
-        dpi: 位图 DPI，默认 400。矢量格式忽略此参数。
-        close: 保存后自动 plt.close(fig)
-        verbose: 打印每个保存的路径
+        fig: matplotlib Figure object
+        name: file name (without extension), e.g. "Fig1_BarChart"
+        out_dir: output directory
+        formats: output format list, default ["png","jpg","tiff","svg"]
+        dpi: raster DPI, default 400. Ignored for vector formats.
+        close: call plt.close(fig) after saving
+        verbose: print the path of every saved file
 
     Returns:
-        已保存的 Path 列表
+        list of saved Paths
 
     Raises:
-        ValueError: formats 中包含不支持的格式
-        OSError: 输出目录无法创建或写入
+        ValueError: formats contains an unsupported format
+        OSError: output directory cannot be created or written
 
     Examples:
-        # 默认四种格式 + 400 DPI
+        # Default four formats + 400 DPI
         save_figure(fig, "Fig1_BarChart", "./figures")
 
-        # 只要 PNG + PDF，600 DPI
+        # PNG + PDF only, 600 DPI
         save_figure(fig, "Fig2_Scaling", "./figures",
                      formats=["png", "pdf"], dpi=600)
 
-        # 不关闭 figure（后续继续编辑）
+        # Keep the figure open (for further editing)
         save_figure(fig, "draft", "./preview", close=False)
     """
     if formats is None:
@@ -390,7 +390,7 @@ def save_figure(
             # JPG/TIFF: render to RGBA buffer → PIL convert
             _save_via_pil(fig, out_path, spec, dpi)
         else:
-            # PNG/SVG/PDF: matplotlib 原生
+            # PNG/SVG/PDF: native matplotlib
             kwargs = dict(spec["save_kwargs"])
             if fmt not in ("svg", "pdf") and dpi is not None:
                 kwargs["dpi"] = dpi
@@ -438,27 +438,27 @@ def _save_via_pil(
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  便捷工具                                                                  ║
+# ║  Convenience helpers                                                       ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 def set_okabe_ito_cycle() -> None:
-    """将当前 axes 的色轮设为 Okabe-Ito（不修改全局 rcParams）。"""
+    """Set the color cycle of the current axes to Okabe-Ito (does not touch global rcParams)."""
     plt.gca().set_prop_cycle(color=OKABE_ITO_LIST)
 
 
 def apply_okabe_ito_globally() -> None:
-    """将 Okabe-Ito 设为全局默认色轮。"""
+    """Set Okabe-Ito as the global default color cycle."""
     plt.rcParams["axes.prop_cycle"] = plt.cycler(color=OKABE_ITO_LIST)
 
 
 def despine(ax=None, top: bool = True, right: bool = True,
             left: bool = False, bottom: bool = False) -> None:
-    """便捷去 spine。
+    """Convenience spine removal.
 
     Args:
-        ax: 目标 axes，默认当前 axes
-        top/right/left/bottom: 是否去除
-           默认去 top+right（与 STYLE_BASE 一致），传 left=True 可去左 spine
+        ax: target axes, defaults to the current axes
+        top/right/left/bottom: whether to remove the spine
+           By default top+right are removed (matching STYLE_BASE); pass left=True to remove the left spine.
     """
     if ax is None:
         ax = plt.gca()
@@ -469,7 +469,7 @@ def despine(ax=None, top: bool = True, right: bool = True,
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  自检（直接运行 python scripts/plot_config.py）                            ║
+# ║  Self-check (run directly with python scripts/plot_config.py)              ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 if __name__ == "__main__":

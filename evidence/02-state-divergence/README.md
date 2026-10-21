@@ -1,91 +1,90 @@
-# 02 — 提示前缀作为隐藏状态初始化
+# 02 — Prompt prefix as hidden-state initialization
 
-→ 论文 Fig 4（Reflection scatter，3 模型 Spearman ρ）
-
-**一句话**：同题、同模型、只换前缀 → 三条完全不同的隐藏状态轨迹。提示前缀充当了"状态初始化"。
+This unit supports Fig. 4 (reflection-marker scatter, Spearman ρ over three models). Holding the problem and the model fixed and changing only the prefix produces three entirely different hidden-state trajectories, which is what motivates describing the prompt prefix as a state initialization.
 
 ---
 
-## 这个实验做什么
+## What this experiment does
 
-排除了"CoT 是通用增强器"（实验①）后，下一个问题是：**提示前缀到底在模型内部做了什么？** 本实验用 reflection-marker 频次作为行为代理指标，检验 3 个模型上是否成立"反思标记多 → 准确率高"假设。
+Having ruled out "CoT is a universal enhancer" (experiment 1), the next question is what the prompt prefix does inside the model. This experiment uses reflection-marker frequency as a behavioural proxy and tests, on three models, whether "more reflection markers means higher accuracy" holds.
 
-**方法**：3 个 DeepSeek-R1-Distill 模型（Qwen-1.5B、Qwen-7B、Llama-8B），各跑 15 个 prompt（Standard + 14 CoT variants + Term-first），统计每 (model, prompt) 组合的：
-- reflection-marker 总频次（9 类 marker 之和：`wait`, `however`, `hmm`, `let me`, `re-evaluate`, `reconsider`, `alternatively`, `hold on`, `let's re`）
-- AIME 2024 pass@1 准确率
+**Method**: three DeepSeek-R1-Distill models (Qwen-1.5B, Qwen-7B, Llama-8B) were run on AIME 2024. The Qwen-1.5B model has 16 prompt conditions (the Standard baseline, 14 CoT variants and Term-first); the Qwen-7B and Llama-8B models have 15 (the Standard baseline and the 14 CoT variants), because Term-first was evaluated on 1.5B only in this experiment. For every (model, prompt) pair the experiment recorded:
 
-**结论**：所有 3 个模型的 Spearman ρ 都不显著正，95% CI 与 0 重叠。reflection-marker 频次不能作为推理质量的代理指标。
+- the total reflection-marker count, i.e. the sum over 9 marker classes (`wait`, `however`, `hmm`, `let me`, `re-evaluate`, `reconsider`, `alternatively`, `hold on`, `let's re`)
+- AIME 2024 pass@1 accuracy
 
----
-
-## 实验条件
-
-| 维度 | 详情 |
-|------|------|
-| 模型 | DeepSeek-R1-Distill-{Qwen-1.5B, Qwen-7B, Llama-8B} |
-| 数据集 | AIME 2024（30 题）|
-| Prompt 数 | 16 (Standard + 14 CoT + Term-first) |
-| 每 prompt 取样 | n=64 (Qwen-1.5B) / 池化 n=15 (7B, 8B) |
-| 设备 | Mac MPS / float16 |
+**Result**: for all three models the Spearman ρ is not significantly positive and the 95% CI overlaps zero. Reflection-marker frequency is not a usable proxy for reasoning quality.
 
 ---
 
-## 关键发现
+## Experimental setting
 
-| 模型 | Spearman ρ | 95% CI | p-value | 解读 |
-|------|-----------|--------|---------|------|
-| R1-Distill-Qwen-1.5B | 接近 0 | 含 0 | n.s. | "wait 多次"不预测高准确率 |
-| R1-Distill-Qwen-7B   | 接近 0 | 含 0 | n.s. | 同上 |
-| R1-Distill-Llama-8B  | 弱正 | 含 0 | n.s. | 即使方向正，统计上不显著 |
-
----
-
-## 数据溯源
-
-| Claim | 数据文件 | 格式 |
-|-------|---------|------|
-| 1.5B 模型 16 prompt × 4 runs | `data/reflection_1p5b_real.json` | JSON (16 lists) |
-| 7B 模型 15 prompt | `data/reflection_7b_real.json` | JSON (15 dicts) |
-| 8B 模型 15 prompt | `data/reflection_8b_real.json` | JSON (15 dicts) |
-| 5-problem 选样元信息 | `data/selected_controlled_case.json` | JSON (单题 AIME 2024-II-4) |
-| 32-run 三态 Logit Lens 原始轨迹 | `data/logit_lens_data_1.5B_32runs.json` + `_all_states.json` | JSON |
-| 三态汇总轨迹 | `data/real_logit_lens_data.json` + `_controlled.json` | JSON |
+| Dimension | Detail |
+|-----------|--------|
+| Models | DeepSeek-R1-Distill-Qwen-1.5B, DeepSeek-R1-Distill-Qwen-7B, DeepSeek-R1-Distill-Llama-8B |
+| Dataset | AIME 2024 (30 problems) |
+| Prompts | 16 for Qwen-1.5B (Standard, 14 CoT variants, Term-first); 15 for Qwen-7B and Llama-8B (Term-first not included) |
+| Samples per prompt | n=64 (Qwen-1.5B) / pooled n=15 (7B, 8B) |
+| Device | Mac MPS / float16 |
 
 ---
 
-## 图
+## Key results
 
-| 论文图号 | 生成脚本 | 输入 | 输出 |
-|----------|---------|------|------|
-| Fig 4 | `code/Fig4_ReflectionScatter.py` | `data/reflection_{1p5b,7b,8b}_real.json` | `figures/Fig4_Reflection_Scatter.{png,jpg,tiff,svg}` |
+| Model | Spearman ρ | 95% CI | p-value | Reading |
+|-------|------------|--------|---------|---------|
+| DeepSeek-R1-Distill-Qwen-1.5B | close to 0 | includes 0 | n.s. | many "wait" markers do not predict high accuracy |
+| DeepSeek-R1-Distill-Qwen-7B | close to 0 | includes 0 | n.s. | as above |
+| DeepSeek-R1-Distill-Llama-8B | weakly positive | includes 0 | n.s. | the direction is positive but not statistically significant |
 
 ---
 
-## 复现
+## Claim-to-data map
+
+| Claim | Data file | Format |
+|-------|-----------|--------|
+| 1.5B model, 16 prompts × 4 runs | `data/reflection_1p5b_real.json` | JSON (16 lists) |
+| 7B model, 15 prompts | `data/reflection_7b_real.json` | JSON (15 dicts) |
+| 8B model, 15 prompts | `data/reflection_8b_real.json` | JSON (15 dicts) |
+| Selection metadata for the controlled case | `data/selected_controlled_case.json` | JSON (single problem, AIME 2024-II-4) |
+| Raw three-state Logit Lens trajectories, 32 runs | `data/logit_lens_data_1.5B_32runs.json` and `data/logit_lens_data_1.5B_32runs_all_states.json` | JSON |
+| Aggregated three-state trajectories | `data/real_logit_lens_data.json` and `data/real_logit_lens_data_controlled.json` | JSON |
+
+---
+
+## Figures
+
+| Manuscript figure | Script | Input | Output |
+|-------------------|--------|-------|--------|
+| Fig. 4 | `code/Fig4_ReflectionScatter.py` | `data/reflection_{1p5b,7b,8b}_real.json` | `figures/Fig4_ReflectionScatter.{png,jpg,tiff,svg,pdf}` |
+
+---
+
+## Reproduction
 
 ```bash
 cd code/
-python3 Fig4_ReflectionScatter.py     # Fig 4
+python3 Fig4_ReflectionScatter.py     # Fig. 4
 ```
 
-无需 GPU；纯 Python 加载 JSON + matplotlib 出图，~5 秒。
+No GPU is required; the script loads JSON and plots with matplotlib in about 5 seconds.
 
 ---
 
-## 约束与注意事项
+## Scope and caveats
 
-- **单一数据集**：所有 reflection-marker 数据来自 AIME 2024。跨数据集（GSM8K/MMLU/HumanEval）的 marker 频次 vs 准确率分析未做，因为其他数据集的"反思"语义弱于 AIME 2024 的竞赛推理。
-- **统计功效**：3 个模型 × 16 prompt 的样本量小，Spearman ρ 95% CI 较宽。论文中"无显著正相关"的声称在 Bonferroni 校正下稳健。
-- **不可外推的声称**：本实验证伪"反思标记 = 推理质量"的强形式假设；不证伪"反思在某些条件下有帮助"。
+- **Single dataset**: all reflection-marker data come from AIME 2024. The marker-frequency versus accuracy analysis was not repeated on GSM8K/MMLU/HumanEval, because "reflection" is weaker outside competition mathematics.
+- **Statistical power**: 3 models × 15 or 16 prompts is a small sample and the 95% CIs of the Spearman ρ are wide. The claim of "no significant positive correlation" is robust under Bonferroni correction.
+- **Claims that cannot be made**: the experiment refutes the strong form of "reflection markers equal reasoning quality"; it does not refute "reflection helps under some conditions".
 
 ---
 
-## 处理流程（仅供了解，scripts 不依赖 GPU 重跑）
+## Processing pipeline (for reference; the plotting scripts do not re-run the extraction)
 
-```
-extract_termfirst_logit_lens.py    → 4 条件 (under / normal / over / term-first) × 单题 hidden-state extraction
-real_logit_lens_extractor.py       → 3 条件 (under / normal / over) × 32 runs × 29 layers
-verify_logit_lens_data.py          → 验证 JSON 完整性
-```
+The extraction scripts are kept for completeness and are not needed to regenerate the figures.
 
-> 这些脚本需要 MPS/GCU 设备；它们的输出已作为 JSON 数据包含在本仓库，Fig 4/5 可无需重跑提取。
+1. `code/extract_termfirst_logit_lens.py` extracts hidden states for four conditions (under-thinking, normal-thinking, over-thinking, Term-first) on the single problem.
+2. `code/real_logit_lens_extractor.py` extracts three conditions (under-thinking, normal-thinking, over-thinking) over 32 runs × 29 layers.
+3. `code/verify_logit_lens_data.py` checks the integrity of the JSON files.
+
+> These scripts load the model in float16 on an MPS or CUDA device. Their outputs are included in this repository as JSON, so Figs. 4 and 5 can be regenerated without re-running the extraction.

@@ -1,31 +1,34 @@
 import GoldenRule
 
 /-!
-Witness_GR.lean — H1 数据实例化（自动生成，勿手改）。
+Witness_GR.lean — H1 instantiation on real data (generated numeric literals; do not edit
+by hand).
 
-生成脚本：docs/02_theory/formal/extract_gr_witness.py
-数据源  ：evidence/01-macro-heterogeneity/data/fig1_task_heterogeneity_scores.csv
-          （Qwen2.5-3B，4 数据集 × 4 runs 均值）
+Data binding: evidence/01-macro-heterogeneity/data/fig1_task_heterogeneity_scores.csv
+              (Qwen2.5-3B, mean over 4 runs on each of 4 datasets)
 
-本文件实例化 GoldenRule.lean 的三个抽象定理，把"前提"用真实数据验证，
-从而推出论文评测到的有限族内不存在 golden rule。acc 表为精确 Int 刻度（百分数 ×100）。
+This file instantiates three abstract theorems from GoldenRule.lean: it verifies the
+hypotheses against real data and thereby derives that no golden rule exists within the
+finite family evaluated in the paper. The acc table uses an exact Int scale
+(accuracy in percent x 100).
 -/
 
 namespace GoldenRule.Witness
 
--- 提示词：Standard 基线（index 0）+ 14 个 CoT 变体（index 1-14），
--- 用 Fin 15 表示有限枚举。term-first 不在本表范围——
--- 它在 Witness_ModelScale.lean 单独验证（fig2 CSV：1.5B 负 / 3B 正）。
+-- Prompts: the Standard baseline (index 0) plus 14 CoT variants (indices 1-14),
+-- represented as the finite enumeration Fin 15. term-first is outside this table:
+-- it is verified separately in Witness_ModelScale.lean (model-scale CSV: negative at
+-- 1.5B, positive at 3B).
 abbrev Prompt := Fin 15
 
--- 数据集：Fin 4
+-- Datasets: Fin 4
 abbrev Task := Fin 4
 
--- 模型：本表固定 Qwen2.5-3B，用 Fin 1 表示单成员
+-- Models: this table is fixed to Qwen2.5-3B, represented by the single member Fin 1
 abbrev Model := Fin 1
 
 
--- 准确率表（Qwen2.5-3B，4 数据集 × 15 提示词，4-run 均值，百分数×100）
+-- Accuracy table (Qwen2.5-3B, 4 datasets x 15 prompts, mean over 4 runs, percent x 100)
 def accTable (_m : Model) (t : Task) (p : Prompt) : Int :=
   match t.val, p.val with
     | 0, 0 => 8069
@@ -90,28 +93,29 @@ def accTable (_m : Model) (t : Task) (p : Prompt) : Int :=
     | 3, 14 => 5961
     | _, _ => 0
 
--- 空前缀基线 = Standard
+-- Empty-prefix baseline = Standard
 def noPromptW : Prompt := 0
 def accW : Model → Task → Prompt → Int := accTable
 def effW (m : Model) (t : Task) (p : Prompt) : Int := accTable m t p - accTable m t noPromptW
 
--- 前提 A：每个提示词都存在非正效果格（相对 Standard 基线）
--- 由 decide 在有限类型上机械验证。
+-- Premise A: every prompt has a cell with non-positive effect (relative to the Standard
+-- baseline). Checked mechanically with decide over the finite types.
 theorem premise_no_universal_enhancer :
     ∀ p : Prompt, ∃ (m : Model) (t : Task), effW m t p ≤ 0 := by
   decide
 
--- 前提 B：每个提示词都存在另一提示词在某评测格严格更优
+-- Premise B: for every prompt there is another prompt that is strictly better in some
+-- evaluated cell.
 theorem premise_no_global_optimum :
     ∀ p : Prompt, ∃ (m : Model) (t : Task) (p' : Prompt), accTable m t p' > accTable m t p := by
   decide
 
--- 结论：论文评测到的有限族内，既无全局最优提示词，也无通用增强提示词
+-- Conclusion: within the finite family evaluated in the paper there is neither a globally optimal prompt nor a universal enhancer
 theorem no_golden_rule_witness :
     ¬ (∃ p : Prompt, GoldenRule.GR accTable p ∨ GoldenRule.UE accTable noPromptW p) := by
   exact GoldenRule.no_golden_rule accTable noPromptW premise_no_global_optimum premise_no_universal_enhancer
 
--- T3 数据实例化：Think. 在 GSM8K 负效应，在 MMLU 正效应
+-- T3 data instantiation: Think. has a negative effect on GSM8K and a positive effect on MMLU
 def pThink : Prompt := 1
 def tGSM8K : Task := 0
 def tMMLU : Task := 1
@@ -123,14 +127,14 @@ theorem effect_depends_on_task_witness :
   · decide
   · decide
 
--- 直接结论：同一提示词在 GSM8K 负效应、MMLU 正效应 ⇒ 效应值随任务严格上升
+-- Direct conclusion: the same prompt is negative on GSM8K and positive on MMLU, so the effect increases strictly with the task
 theorem effect_differs_by_task_witness :
     GoldenRule.eff accTable noPromptW 0 tGSM8K pThink < GoldenRule.eff accTable noPromptW 0 tMMLU pThink := by
   apply GoldenRule.effect_differs_by_task accTable noPromptW (m := 0) (p := pThink) (t1 := tGSM8K) (t2 := tMMLU)
   · decide
   · decide
 
--- T6 数据实例化：Standard 与 Think. 在 GSM8K/MMLU 上序关系翻转
+-- T6 data instantiation: Standard and Think. reverse their order between GSM8K and MMLU
 def pStandard : Prompt := 0
 example : accTable 0 tGSM8K pStandard > accTable 0 tGSM8K pThink := by decide
 example : accTable 0 tMMLU pThink > accTable 0 tMMLU pStandard := by decide

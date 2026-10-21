@@ -1,97 +1,67 @@
-# LEAN4 形式化证明
+# Lean 4 formalization
 
-论文"提示词无 golden rule"主张的机械验证。用 LEAN4 定理证明器把
-`docs/02_theory/FORMAL_PROOF.md` 的数学记号变成可编译验证的形式。
+Machine-checked formalization of the manuscript claim that no prompt is a golden rule.
+The Lean 4 sources turn the mathematical notation used in the manuscript into definitions
+and theorems that the proof checker verifies.
 
-## 文件结构
+## Files
 
-| 文件 | 内容 | 生成方式 |
+| File | Contents | Provenance |
 |---|---|---|
-| `GoldenRule.lean` | **H1 抽象定理**：无全局最优、无通用增强、效应依赖任务/模型、总命题。纯构造证明，对所有 `acc`/`noPrompt` 成立 | 手写 |
-| `Witness_GR.lean` | **H1 真实数据实例化**：把 Fig1 CSV 的 Qwen2.5-3B 评测结果写成 `accTable`，用 `decide` 验证前提，并实例化 `effect_depends_on_task_witness` / `no_global_dominance_witness` | `extract_gr_witness.py` |
-| `Instance.lean` | **H2 反例**：反思标记频次→准确率单调蕴涵被真实数据反例击穿（`¬ H_marker`，含理论层 T9/T10 桥接） | `extract_witness.py` |
-| `Witness_ModelScale.lean` | **效应依赖模型实例化**：term-first 在 GSM8K 上 1.5B 负效应 / 3B 正效应（fig2 数据） | `extract_model_scale.py` |
-| `MethodologyCore.lean` | **方法论抽象引理**（r13 新增）：表面指标非单调性的测度类型无关层（M.2 同值不同质 + M.3 序列非单调） | 手写 |
-| `MethodologyWitness.lean` | **方法论数据实例化**（r13 新增）：三个反例（峰值层非函数、规模序列、生成���度） | `extract_methodology.py` |
-| `FORMAL_LEAN4.md` | 设计说明 + 数学记号 ↔ LEAN4 对应 + 数据绑定 | 手写 |
-| `extract_witness.py` | 从 `reflection_1p5b_real.json` 生成 `Instance.lean` | — |
-| `extract_gr_witness.py` | 从 `fig1_task_heterogeneity_scores.csv` 生成 `Witness_GR.lean` | — |
-| `extract_model_scale.py` | 从 `fig2_model_scale_scores.csv` 生成 `Witness_ModelScale.lean` | — |
-| `extract_methodology.py` | 从 `logit_lens_1.5b_full.json` + `fig2_model_scale_scores.csv` 生成 `MethodologyWitness.lean` | — |
-| `lakefile.lean` / `lean-toolchain` | LEAN4 项目配置（Lean 4.31.0，无 Mathlib） | 手写 |
-| `snapshot_version.py` | 版本快照工具：把当前工作版归档到 `versions/` | 手写 |
+| `GoldenRule.lean` | **H1 abstract theorems**: no global optimum, no universal enhancer, effect depends on task and model, combined statement. Purely constructive proofs, valid for arbitrary `acc` and `noPrompt` | hand-written |
+| `Witness_GR.lean` | **H1 instantiation on real data**: the Qwen2.5-3B scores of the task-heterogeneity table are encoded as `accTable`; the premises are checked with `decide`, and `effect_depends_on_task_witness` / `no_global_dominance_witness` are instantiated | `evidence/01-macro-heterogeneity/data/fig1_task_heterogeneity_scores.csv` |
+| `Instance.lean` | **H2 counterexample**: the implication from reflection-marker frequency to accuracy is falsified by real data (`¬ H_marker`, including the theory-layer T9/T10 bridge) | `evidence/02-state-divergence/data/reflection_1p5b_real.json` |
+| `Witness_ModelScale.lean` | **Model-dependence instantiation**: term-first has a negative effect at 1.5B and a positive effect at 3B on GSM8K (model-scale data) | `evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv` |
+| `MethodologyCore.lean` | **Abstract methodology lemmas**: a measure-type-agnostic layer for the non-monotonicity of surface metrics (M.2 same value, different quality; M.3 non-monotone sequence) | hand-written |
+| `MethodologyWitness.lean` | **Data instantiation of the methodology lemmas**: three counterexamples (the peak layer is not a function, the model-scale sequence, generation length) | `evidence/03-logit-lens/data/logit_lens_1.5b_full.json`, `evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv`, `evidence/02-state-divergence/data/selected_controlled_case.json` |
+| `lakefile.lean`, `lean-toolchain` | Lean 4 project configuration (Lean 4.31.0, no Mathlib) | hand-written |
 
-**当前版本**：r13-final（顶层 = `versions/r13-final/` 的完整定稿）。后续不再迭代本目录；扩展请新建 r14+ 版本。
+This is the final version of the formalization.
 
-## 编译
+## Build
+
+Run the build from the `formal/` directory of this repository, after installing the
+toolchain described in `formal/INSTALL.md`:
 
 ```bash
-# 前置：elan 工具链（Lean 4.31.0，见 docs/02_theory/formal/INSTALL.md）
-cd docs/02_theory/formal/
+# requirements: elan toolchain (Lean 4.31.0, see INSTALL.md in this directory)
+cd formal/
 lake build
 ```
 
-## 版本管理（多 AI 迭代）
+`lake build` compiles all six Lean libraries declared in `lakefile.lean` and does not
+download Mathlib.
 
-本项目用多个 LLM（deepseek-v4-flash、opus 等）对形式化证明做多轮反复迭代。
-每一轮的产出归档到独立版本目录，便于对比、回滚和择优。
+## Verification principles
 
-**结构**：
+- **The proofs do not read data files.** Data enter through exact `Int` literals
+  (accuracies in percent x 100) encoded in the instantiation files, which rules out
+  transcription errors in the proof input.
+- **The witnesses are self-contained.** Each instantiation file records its data source and
+  the integer literals copied from it; if the data change, the literals and the build have
+  to be updated together.
+- **Finite-domain boundary.** `Model` / `Task` / `Prompt` are `Fin` enumerations, so the
+  proofs cover the finite family actually evaluated in the paper. They do not claim that a
+  golden rule is absent for arbitrary future models.
+- **No Mathlib dependency.** Only the core library shipped with Lean 4.31.0 is used, which
+  avoids pulling in several hundred MB of dependencies.
 
-```
-formal/
-├── GoldenRule.lean / Witness_GR.lean / Instance.lean   ← 当前工作版（最新可用）
-├── snapshot_version.py                                   ← 归档工具
-└── versions/
-    ├── VERSIONS.md                                       ← 版本登记表
-    ├── r0-baseline/                                      ← 已验证基线（可独立 lake build）
-    ├── r1-deepseek-v4-flash/                             ← 迭代快照（每轮×每 AI 一个目录）
-    └── ...
-```
-
-**使用流程**：
-
-```bash
-# 1. 把某一轮（某 AI 的产出）同步到顶层工作版
-# 2. 归档当前工作版为版本快照：
-python3 snapshot_version.py r1 deepseek-v4-flash \
-  --note "改进了 H2 反例，证明结构更简洁"
-
-# 查看已有版本：
-python3 snapshot_version.py --list
-```
-
-**原则**：
-- **顶层 = 当前工作版**，始终保留最新可用状态；`versions/` = 历史归档，只增不改。
-- **每个版本自洽**：含全部 `.lean` + 生成脚本 + lake 配置，可独立 `lake build` 验证。
-- **版本命名**：`r<N>-<ai>`（轮次×AI 混合）。同轮不同 AI 产出并列，便于对比。
-- **编译状态**：登记表 `❓` 表示待验证；`✅` 表示该版本快照已独立 `lake build` 通过。
-- 归档时 `snapshot_version.py` 自动跳过构建产物（`.lake/`、`__pycache__/`、`*.olean`）。
-
-## 验证原则
-
-- **证明不读数据文件**。数据通过生成脚本以精确 `Int` 字面量（百分数 ×100）编入
-  实例化文件，防止手抄错误。
-- **生成器可复现**。改数据后重跑生成脚本即可更新证明输入。
-- **有限域边界**。`Model`/`Task`/`Prompt` 用 `Fin` 表示有限枚举，证明覆盖"论文评测到
-  的有限族内不存在 golden rule"，不声称对任意未来模型成立（见 FORMAL_PROOF.md §6）。
-- **无 Mathlib 依赖**。只用 Lean 4.31.0 自带核心库，避免额外拉取数百 MB 依赖。
-
-## 复现链路（claim → 数据 → LEAN）
+## Reproducibility chain (claim to data to Lean)
 
 ```
-paper/main_cn.tex
-  └─ docs/02_theory/FORMAL_PROOF.md        （数学陈述）
-       └─ formal/GoldenRule.lean           （抽象定理：H1 核心 + H2 指标 + 机制层）
-            ├─ formal/Witness_GR.lean      （实例化，数据=fig1 CSV）
-            │    └─ evidence/01-macro-heterogeneity/data/fig1_task_heterogeneity_scores.csv
-            ├─ formal/Witness_ModelScale.lean （实例化，数据=fig2 CSV，3B 用 group48 真值）
-            │    └─ evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv
-            └─ formal/Instance.lean        （H2 反例，数据=reflection JSON）
-                 └─ evidence/02-state-divergence/data/reflection_1p5b_real.json
+manuscript claim: prompt performance depends on dataset, task and model, so no golden rule
+  └─ formal/GoldenRule.lean              (abstract theorems: H1 core + H2 metric + mechanism layer)
+       ├─ formal/Witness_GR.lean        (instantiation, data = task-heterogeneity CSV)
+       │    └─ evidence/01-macro-heterogeneity/data/fig1_task_heterogeneity_scores.csv
+       ├─ formal/Witness_ModelScale.lean (instantiation, data = model-scale CSV; 3B from group48)
+       │    └─ evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv
+       └─ formal/Instance.lean          (H2 counterexample, data = reflection JSON)
+            └─ evidence/02-state-divergence/data/reflection_1p5b_real.json
 ```
 
-> 注：Witness_ModelScale.lean 的 1.5B / 3B 效应均使用**重跑真值**（2026-08-06）：
-- 1.5B：-8.09 pp（-809/100，重跑真值，pass@4，seeds 44–47，vLLM）
-- 3B：+3.67 pp（+367/100，group48 真独立数据，pass@4）
-- 0.5B / 7B / 32B：fig2 CSV 4-run 均值。
+Note: the 1.5B and 3B effects in `Witness_ModelScale.lean` both use re-run values
+(2026-08-06):
+
+- 1.5B: -8.09 pp (-809/100, re-run value, mean pass@1 over four generations, seeds 44-47, vLLM)
+- 3B: +3.67 pp (+367/100, independent group48 data, mean pass@1 over four generations)
+- 0.5B / 7B / 32B: mean over four runs from the model-scale CSV.

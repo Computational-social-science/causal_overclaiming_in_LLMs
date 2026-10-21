@@ -1,53 +1,49 @@
-# 实验证据（自包含单元）
+# Experimental evidence (self-contained units)
 
-> 本目录包含论文全部实验的证据链。每个子文件夹是一个自包含的实验单元（code + data + README）。
+> This directory contains the evidence chain for every experiment in the manuscript. Each subfolder is a self-contained experiment unit (code + data + README).
 
-## 给评审/老师看的总览
+## Overview
 
-论文的核心论点是：**AI 研究中存在"看到热门策略 → 不验证 → 照搬"的盲从模式，CoT 提示词是一个典型案例**。三个实验构成递进的论证链：
+The manuscript does not treat chain-of-thought prompting as a settled source of gains. It examines two assumptions that are often adopted without verification, and then asks what a prompt prefix does inside the model. The experiments in this directory test the two assumptions and the mechanism question in sequence, and each unit can be read and reproduced on its own.
 
-| 实验 | 文件夹 | 回答的问题 | 核心结论 | 论文图 |
-|------|--------|-----------|---------|--------|
-| ① CoT 收益的条件性 | [`01-macro-heterogeneity/`](01-macro-heterogeneity/) | "Let's think step by step" 应该不加验证地当作默认前缀吗？ | **不应该**。收益取决于任务类型和模型规模，32B 以下多数变体退化 | Fig 2, Fig 3 |
-| ② 前缀的状态初始化效应 | [`02-state-divergence/`](02-state-divergence/) | 只改 prompt 前缀，模型内部会发生什么？ | 三种前缀 → 三条完全不同的隐藏状态轨迹。前缀不是"编码解题步骤"，而是**设定计算动力学的初始条件** | Fig 4 |
-| ③ term-first 跨题验证 | [`03-logit-lens/`](03-logit-lens/) | 实验②的单题发现稳定吗？term-first 属于哪种轨迹？ | 延迟承诺型在 5 题上**精确共享 L20 收敛层**；term-first 在 4/5 题上与之吻合 | Fig 5 |
+Experiment 01 works at the level of accuracy. It compares a curated prompt suite on four datasets and five model scales, and finds that the effect of the same CoT prefix changes direction across tasks and is not monotonic in scale. The result is descriptive counter-evidence to the strong universal-enhancer hypothesis; it does not establish a scale threshold.
 
-### 论证逻辑链
+Experiments 02 and 03 work at the level of hidden states. Experiment 02 holds the problem and the model fixed and changes only the prefix, and finds three distinct trajectories, which supports describing the prefix as an initialization of the model state rather than as a carrier of solution steps. Experiment 03 repeats the analysis on five problems and places the Term-first condition among the three trajectory types. Both units are limited to one dataset (AIME 2024) and one model family, and the claims are stated at that scope.
 
-```
-案例 1（实验①）：CoT 不是通用增强器 → 排除第一个盲从假设
-    │
-    ├── "既然 CoT 不是万能的，什么在起作用？"
-    │
-案例 2（实验②+③）：提示前缀的真正作用是隐藏状态初始化
-    │  不是编码解题步骤，不是反思标记的信号
-    │
-    └── "理解了机制，就能针对性地设计更轻更好的策略"
-         → term-first 用 12 token 达到甚至超过重 CoT 的效果
-```
+| Experiment | Folder | Question | Main result | Manuscript figure |
+|------------|--------|----------|-------------|-------------------|
+| 1. Conditional nature of CoT gains | [`01-macro-heterogeneity/`](01-macro-heterogeneity/) | Should "Let's think step by step" be adopted as a default prefix without verification? | No. The effect depends on task type and model scale; most variants degrade below 32B. | Fig. 2, Fig. 3 |
+| 2. Prefix as hidden-state initialization | [`02-state-divergence/`](02-state-divergence/) | What happens inside the model when only the prompt prefix changes? | Three prefixes produce three entirely different hidden-state trajectories. The prefix does not encode solution steps; it sets the initial conditions of the computation. | Fig. 4 |
+| 3. Term-first across problems | [`03-logit-lens/`](03-logit-lens/) | Is the single-problem finding stable, and which trajectory type does Term-first belong to? | Delayed commitment shares convergence layer L20 exactly on the five problems; Term-first agrees with it on 4 of 5. | Fig. 5 |
 
-## 每个实验文件夹的结构
+## Argument chain
+
+1. Experiment 1 shows that CoT is not a universal enhancer, which removes the first assumption.
+2. With that assumption removed, the question becomes what the prefix is actually doing. Experiments 2 and 3 show that changing only the prefix changes the hidden-state trajectory; the prefix does not encode solution steps, and reflection-marker counts are not the signal.
+3. Once the trajectory types are described, a lighter strategy can be designed against them: Term-first reaches or exceeds the heavy CoT conditions with 12 tokens.
+
+## Structure of each experiment folder
 
 ```
 <experiment>/
-├── README.md     实验卡（数据溯源表 + 复现命令 + 信任级声明）
-├── code/         复现脚本
-└── data/         复现数据（CSV / JSON / NPY）
+├── README.md     experiment card (claim-to-data map, reproduction commands, scope of claims)
+├── code/         reproduction scripts
+└── data/         reproduction data (CSV / JSON / NPY)
 ```
 
-## 与论文图的对应
+## Mapping to manuscript figures
 
-| 论文图 | 实验 | 脚本 | 入口数据 |
-|--------|------|------|---------|
-| Fig 2 (Task heterogeneity) | ① | `evidence/01/code/Fig2_TaskHeterogeneity.py` | `evidence/01/data/fig1_task_heterogeneity_scores.csv` + `evidence/01/data/aime2024_qwen25_3b_n64_16k_scores/` |
-| Fig 3 (Model scale)        | ① | `evidence/01/code/Fig3_ScalingLaws.py` | `evidence/01/data/fig2_model_scale_scores.csv` |
-| Fig 4 (Reflection scatter) | ② | `evidence/02/code/Fig4_ReflectionScatter.py` | `evidence/02/data/reflection_{1p5b,7b,8b}_real.json` |
-| Fig 5 (Logit Lens 4 cond)  | ③ | `evidence/03/code/Fig5_LogitLens.py` | `evidence/03/data/logit_lens_5q_4cond.json` |
+| Manuscript figure | Experiment | Script | Input data |
+|-------------------|------------|--------|------------|
+| Fig. 2 (task heterogeneity) | 1 | `evidence/01-macro-heterogeneity/code/Fig2_TaskHeterogeneity.py` | `evidence/01-macro-heterogeneity/data/fig1_task_heterogeneity_scores.csv` + `evidence/01-macro-heterogeneity/data/aime2024_qwen25_3b_n64_16k_scores/` |
+| Fig. 3 (model scale) | 1 | `evidence/01-macro-heterogeneity/code/Fig3_ScalingLaws.py` | `evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv` |
+| Fig. 4 (reflection markers) | 2 | `evidence/02-state-divergence/code/Fig4_ReflectionScatter.py` | `evidence/02-state-divergence/data/reflection_{1p5b,7b,8b}_real.json` |
+| Fig. 5 (Logit Lens, four conditions) | 3 | `evidence/03-logit-lens/code/Fig5_LogitLens.py` | `evidence/03-logit-lens/data/logit_lens_5q_4cond.json` |
 
-> 论文 Fig 1 是概念示意图，无对应脚本。
+Fig. 1 is a conceptual diagram and has no script of its own.
 
-## 信任级声明
+## Scope of claims
 
-- **Fig 2/3 (实验①)**：基于 OpenCompass 跑 4 个数据集 × 5 个模型规模 × 15 个 prompt 变体的可复现数据。CSV 是直接输出。
-- **Fig 4 (实验②)**：基于 DeepSeek-R1-Distill-Qwen-1.5B 在 3 个模型 × AIME 2024 的 reflection-marker counts，prompt-level aggregation。JSON 是直接输出。
-- **Fig 5 (实验③)**：基于 Logit Lens 在 5 题 × 4 条件的概率轨迹。JSON 是直接输出。
+- **Figs. 2 and 3 (experiment 1)**: reproducible data from OpenCompass over four datasets and five model scales. The task-heterogeneity panel holds 15 prompts (Standard baseline plus 14 CoT variants); the scale panel adds Term-first as a 16th prompt. The CSV files are the direct output.
+- **Fig. 4 (experiment 2)**: reflection-marker counts for DeepSeek-R1-Distill-Qwen-1.5B, DeepSeek-R1-Distill-Qwen-7B and DeepSeek-R1-Distill-Llama-8B on AIME 2024, aggregated at prompt level. The JSON files are the direct output.
+- **Fig. 5 (experiment 3)**: Logit Lens probability trajectories for five problems × four conditions. The JSON file is the direct output.

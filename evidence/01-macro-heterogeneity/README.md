@@ -1,86 +1,85 @@
-# 01 — CoT 收益的条件性
+# 01 — Conditional nature of CoT gains
 
-→ 论文 Fig 2（任务异质性）和 Fig 3（模型规模）
-
-**一句话**：CoT 提示词不是"加了就好"的通用增强器——收益取决于任务类型和模型规模。
+This unit supports Fig. 2 (task heterogeneity) and Fig. 3 (model scale). It compares a curated prompt suite across four datasets and five Qwen2.5 scales and shows that the effect of a CoT prefix depends on the task and on the scale, so the prefix cannot be described as a universal enhancer.
 
 ---
 
-## 这个实验做什么
+## What this experiment does
 
-检验一个被广泛默认的前提："Let's think step by step" 是否应该在所有场景下都不加验证地使用。
+The experiment tests a widely assumed premise: whether "Let's think step by step" can be used without verification in every setting.
 
-**方法**：在 4 个数据集（GSM8K、MMLU、HumanEval、AIME 2024）上比较 curated prompt suite，并在 5 个 Qwen2.5 规模（0.5B–32B）上比较效果。suite 由 1 个 standard baseline、14 个 conventional Zero-shot CoT variants 和 1 个 post-selected Term-first diagnostic probe 组成。
+**Method**: the curated prompt suite was compared on four datasets (GSM8K, MMLU, HumanEval, AIME 2024) and across five Qwen2.5 scales (0.5B–32B). The task-heterogeneity panel holds 15 prompts: the Standard baseline plus 14 conventional zero-shot CoT variants, with Term-first excluded. The scale panel holds 16, the same 15 plus Term-first. The AIME 2024 experiment evaluates 16 prompt conditions in total, including the post-selected Term-first diagnostic probe.
 
-**结论**：
-1. 同一个 prompt 在不同任务上的效果方向不一致——在某个数据集上增益的模板，在另一个上可能退化。
-2. 规模效应与 backend、dtype、token cap 和 offload 混杂，只能描述为 scale–implementation bundle，不能归因为 model capability。
-3. prompt 的微小改动（如换一个词）会在题目级别改变"哪些题对、哪些题错"的集合，而非平滑地改分；该结果作为历史描述性证据使用。
+**Results**:
 
-**在论文中的角色**：对强形式 universal-enhancer hypothesis 提供描述性反证；不支持"小模型普遍无收益"或任何规模阈值。
+1. The same prompt changes accuracy in opposite directions on different tasks: a template that gains on one dataset may degrade on another.
+2. The scale effect is confounded with backend, dtype, token cap and offload, so it can only be described as a scale–implementation bundle and cannot be attributed to model capability.
+3. A small change to a prompt (a different word) changes the set of problems that are answered correctly rather than shifting the score smoothly; this result is used as historical descriptive evidence.
 
----
-
-## 实验条件
-
-| 维度 | 详情 |
-|------|------|
-| 模型系列 | Qwen2.5（0.5B, 1.5B, 3B, 7B, 32B）|
-| 数据集 | GSM8K（数学推理）、MMLU（知识问答）、HumanEval（代码生成）、AIME 2024（竞赛数学）|
-| 提示词 | 15 种变体（Standard、14 个 CoT 前缀、Term-first）|
-| 评测方式 | GSM8K/MMLU/HumanEval: pass@4 (n=4); AIME 2024: pass@1 (n=64, 4 轮合并)|
-| 框架 | OpenCompass |
+**Role in the manuscript**: descriptive counter-evidence to the strong universal-enhancer hypothesis. It does not support "small models never gain" and does not establish any scale threshold.
 
 ---
 
-## 关键发现（论文 §2）
+## Experimental setting
 
-| 发现 | 具体数字 | 含义 |
-|------|---------|------|
-| GSM8K 上 worst CoT variant | −2.11 to −1.29 pp（95% CI）| 加 CoT 不一定提升，可能倒退 |
-| Qwen2.5 1.5B/3B 多数 CoT 变体 | 负向 | 中间规模描述性结果；不能外推为"小模型普遍无收益" |
-| Qwen2.5 32B 多数 CoT 变体 | 9/14 为正（端点不显著）| 非单调规模模式，不能视为稳定阈值 |
-| Term-first on AIME 2024 | +0.10 pp (n=256) | 接近零；论文严格按"接近中性"措辞 |
-| Term-first on HumanEval | +10.82 pp | 唯一强正向的 benchmark；论文作为说明性证据 |
-
----
-
-## 数据溯源
-
-| Claim | 数据文件 | 格式 |
-|-------|---------|------|
-| CoT 在 GSM8K/HumanEval 上频繁退化，MMLU/AIME 2024 增益有限 | `data/fig1_task_heterogeneity_scores.csv` | CSV (15 prompts × 4 datasets × 4 runs) |
-| Scale–implementation bundle 下的非单调效果分布 | `data/fig2_model_scale_scores.csv` | CSV (15 prompts × 5 scales × 4 runs) |
-| Term-first 在 AIME 2024 上 4 批合并 n=256 | `data/aime2024_qwen25_3b_n64_16k_scores/termfirst_repeatCDEF_aggregate_summary.csv` | CSV |
-| Standard baseline on AIME 2024 n=64 | `data/aime2024_qwen25_3b_n64_16k_scores/standard_baselineB_aggregate_summary.csv` | CSV |
-| 14 CoT variants on AIME 2024 n=64 each | `data/aime2024_qwen25_3b_n64_16k_scores/prompts15_aggregate_summary.csv` | CSV |
-| 合并 panel 数据（4 数据集 × 5 规模）| `data/Fig2_TaskHeterogeneity_data.csv` | CSV (script Fig 2 读) |
+| Dimension | Detail |
+|-----------|--------|
+| Model family | Qwen2.5 (0.5B, 1.5B, 3B, 7B, 32B) |
+| Datasets | GSM8K (math reasoning), MMLU (knowledge QA), HumanEval (code generation), AIME 2024 (competition mathematics) |
+| Prompts | 15 in the task-heterogeneity panel (Standard baseline plus 14 CoT variants); 16 in the scale panel (those 15 plus Term-first); 16 prompt conditions in the AIME 2024 panel, including the Term-first diagnostic probe |
+| Evaluation | GSM8K/MMLU/HumanEval: mean pass@1 over four generations (n=4); AIME 2024: pass@1 (n=64, four batches pooled) |
+| Framework | OpenCompass |
 
 ---
 
-## 图
+## Key results
 
-| 论文图号 | 生成脚本 | 输入 | 输出位置 |
-|----------|---------|------|---------|
-| Fig 2 | `code/Fig2_TaskHeterogeneity.py` | `data/fig1_task_heterogeneity_scores.csv` + `data/Fig2_TaskHeterogeneity_data.csv` + `data/aime2024_qwen25_3b_n64_16k_scores/` | `figures/Fig2_*.{png,jpg,tiff,svg}` |
-| Fig 3 | `code/Fig3_ScalingLaws.py` | `data/fig2_model_scale_scores.csv` | `figures/Fig3_*.{png,jpg,tiff,svg}` |
+| Finding | Value | Meaning |
+|---------|-------|---------|
+| Worst CoT variant on GSM8K | −2.11 to −1.29 pp (95% CI) | adding CoT does not always help and can reduce accuracy |
+| Most CoT variants at Qwen2.5 1.5B/3B | negative | descriptive result at intermediate scale; does not extrapolate to "small models never gain" |
+| Most CoT variants at Qwen2.5 32B | 9/14 positive (endpoints not significant) | non-monotonic scale pattern; not a stable threshold |
+| Term-first on AIME 2024 | +0.10 pp (n=256) | close to zero; the manuscript describes it as near-neutral |
+| Term-first on HumanEval | +10.82 pp | the only strongly positive benchmark; used as illustrative evidence |
 
 ---
 
-## 复现
+## Claim-to-data map
+
+| Claim | Data file | Format |
+|-------|-----------|--------|
+| CoT often degrades on GSM8K/HumanEval, and gains on MMLU/AIME 2024 are limited | `data/fig1_task_heterogeneity_scores.csv` | CSV (15 prompts × 4 datasets × 4 runs) |
+| Non-monotonic effect distribution under the scale–implementation bundle | `data/fig2_model_scale_scores.csv` | CSV (16 prompts × 5 scales × 4 runs) |
+| Term-first on AIME 2024, four batches pooled, n=256 | `data/aime2024_qwen25_3b_n64_16k_scores/termfirst_repeatCDEF_aggregate_summary.csv` | CSV |
+| Standard baseline on AIME 2024, n=64 | `data/aime2024_qwen25_3b_n64_16k_scores/standard_baselineB_aggregate_summary.csv` | CSV |
+| 14 CoT variants on AIME 2024, n=64 each | `data/aime2024_qwen25_3b_n64_16k_scores/prompts15_aggregate_summary.csv` | CSV |
+| Combined panel data (4 datasets × 5 scales) | `data/Fig2_TaskHeterogeneity_data.csv` | CSV (read by the Fig. 2 script) |
+
+---
+
+## Figures
+
+| Manuscript figure | Script | Input | Output |
+|-------------------|--------|-------|--------|
+| Fig. 2 | `code/Fig2_TaskHeterogeneity.py` | `data/fig1_task_heterogeneity_scores.csv` + `data/Fig2_TaskHeterogeneity_data.csv` + `data/aime2024_qwen25_3b_n64_16k_scores/` | `figures/Fig2_TaskHeterogeneity.{png,jpg,tiff,svg}` |
+| Fig. 3 | `code/Fig3_ScalingLaws.py` | `data/fig2_model_scale_scores.csv` | `figures/Fig3_ScalingLaws.{png,jpg,tiff,svg}` |
+
+---
+
+## Reproduction
 
 ```bash
 cd code/
-python3 Fig2_TaskHeterogeneity.py    # Fig 2: 任务异质性
-python3 Fig3_ScalingLaws.py         # Fig 3: scale 效果分布
+python3 Fig2_TaskHeterogeneity.py    # Fig. 2: task heterogeneity
+python3 Fig3_ScalingLaws.py          # Fig. 3: distribution of scale effects
 ```
 
-无需 GPU；纯 Python 数据处理 + matplotlib 出图，~30 秒。
+No GPU is required; the scripts are pure Python data processing plus matplotlib and run in about 30 seconds.
 
 ---
 
-## 约束与注意事项
+## Scope and caveats
 
-- **Term-first 的来源说明**：本实验的 Term-first prompt 是 `What is the query? Term first, then reasoning.`，从"rephrase-first"提示词族 post-selected 而来（论文 §2.3）。
-- **AIME 2024 多次取样的目的**：通过 n=64（baseline）/ n=256（term-first pooled across 4 batches）压低单批偶然性。论文中所有 AIME 数字均以"pooled mean"措辞呈现。
-- **不可外推的声称**：脚本不会也不能生成"CoT 在 X 任务上必胜"等普适性结论；本实验是描述性的，非证伪。
+- **Origin of the Term-first prompt**: the Term-first prompt used here is `What is the query? Term first, then reasoning.`, post-selected from the rephrase-first prompt family, as described in the manuscript.
+- **Why AIME 2024 uses multiple samples**: n=64 (baseline) and n=256 (Term-first pooled across four batches) reduce batch-to-batch chance variation. All AIME 2024 numbers in the manuscript are reported as pooled means.
+- **Claims that cannot be made**: the scripts do not and cannot produce universal statements such as "CoT always wins on task X". The experiment is descriptive, not a falsification test.

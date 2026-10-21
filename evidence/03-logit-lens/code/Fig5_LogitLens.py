@@ -1,7 +1,8 @@
 """
-Fig4: 4-condition Logit Lens trajectories (updated with term_first).
-5 AIME 2024 questions × 4 prompt conditions × 29-layer probability trajectories.
+Fig5: 4-condition Logit Lens trajectories (updated with term_first).
+5 AIME 2024 questions x 4 prompt conditions x 29-layer probability trajectories.
 Okabe-Ito colorblind-safe palette.
+Output: figures/Figure5_LogitLens.{png,jpg,tiff,svg}
 """
 import json
 import os
@@ -19,9 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(HERE, "..", "data", "logit_lens_5q_4cond.json")
 DATA_PATH = os.path.normpath(DATA_PATH)
 
-EVIDENCE_FIG_DIR = os.path.join(HERE, "..", "figures")
-EVIDENCE_FIG_DIR = os.path.normpath(EVIDENCE_FIG_DIR)
-# PAPER_FIG_DIR removed for release isolation
+REPO_ROOT = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
+FIG_DIR = os.path.join(REPO_ROOT, "figures")
 
 CONDITIONS = ["under_thinking", "normal_thinking", "over_thinking", "term_first"]
 LABELS = {
@@ -30,12 +30,12 @@ LABELS = {
     "over_thinking": "Persistent oscillation",
     "term_first": "Term-first",
 }
-# Okabe-Ito — 论文专属四态语义映射
+# Okabe-Ito semantic colours for the four reasoning states
 COLORS = {
-    "under_thinking": OI["vermillion"],   # 警示
-    "normal_thinking": OI["bluish_green"], # 正向
-    "over_thinking":  OI["blue"],          # 冷调
-    "term_first":     OI["sky_blue"],      # 区分但正向
+    "under_thinking": OI["vermillion"],   # warning
+    "normal_thinking": OI["bluish_green"], # positive
+    "over_thinking":  OI["blue"],          # cool tone
+    "term_first":     OI["sky_blue"],      # distinct but positive
 }
 
 # ---- Load data ----
@@ -138,7 +138,6 @@ fig.supxlabel("Layer", fontsize=8.2, y=0.038)
 fig.supylabel("Token probability", fontsize=8.2, x=0.010)
 plt.subplots_adjust(left=0.078, right=0.995, bottom=0.15, top=0.985, wspace=0.14, hspace=0.26)
 
-os.makedirs(EVIDENCE_FIG_DIR, exist_ok=True)
-save_figure(fig, "Fig5_LogitLens", EVIDENCE_FIG_DIR, formats=["png", "jpg", "tiff", "svg", "pdf"])
-# PAPER_FIG_DIR write removed for release isolation
+os.makedirs(FIG_DIR, exist_ok=True)
+save_figure(fig, "Figure5_LogitLens", FIG_DIR, formats=["png", "jpg", "tiff", "svg"])
 print("Done.")

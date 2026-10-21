@@ -8,16 +8,16 @@ target_question = "Let $x,y$ and $z$ be positive real numbers that satisfy the f
 # Prompts designed to elicit different behaviors from a 1.5B model
 prompts = {
     "under_thinking": [
-        "Wait, think."
-        target_question
+        "Wait, think.",
+        target_question,
     ],
     "normal_thinking": [
-        "Let's reason through this step by step."
-        target_question
+        "Let's reason through this step by step.",
+        target_question,
     ],
     "over_thinking": [
-        "Let's think step by step."
-        target_question
+        "Let's think step by step.",
+        target_question,
     ]
 }
 
