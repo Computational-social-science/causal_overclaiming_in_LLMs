@@ -28,6 +28,8 @@ setup_style({"font.size": 7, "axes.labelsize": 8, "axes.titlesize": 8,
              "xtick.labelsize": 7, "ytick.labelsize": 7, "legend.fontsize": 7})
 
 MODELS = ['0.5B', '1.5B', '3B', '7B', '32B']
+# Panel titles name the model family explicitly, matching the manuscript figure.
+PANEL_TITLES = {m: f'Qwen2.5-{m}' for m in MODELS}
 # Sequential blue for model scale (single-hue gradient, perceptually uniform)
 BAR_COLORS = sequential_from_cmap(5, "Blues")
 TERMFIRST_COLOR = OI["vermillion"]  # stands out against blue gradient
@@ -119,7 +121,7 @@ def draw():
         ax.spines['left'].set_visible(False)
         ax.spines['bottom'].set_linewidth(0.5)
         ax.yaxis.set_visible(False)
-        ax.set_title(name, fontsize=8, fontweight='bold', pad=10, color=BAR_COLORS[i])
+        ax.set_title(PANEL_TITLES[name], fontsize=8, fontweight='bold', pad=10, color=BAR_COLORS[i])
         # x-axis label matches Fig 1 (ΔACC (%)); shown on every panel
         # for consistency with Fig 1's layout (one label per panel).
         ax.set_xlabel(r'$\Delta$ACC (%)', fontsize=7)
