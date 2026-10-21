@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.3 — 2026-10-22
+
+Figure release. Code, data and formalization are unchanged from v1.0.2.
+
+- Figure 5: panel labels a-d moved to the upper-left corner above the axes
+  (set_title(loc="left")), matching the submitted figure; the previous in-axes
+  ax.text(0.03, 0.92, ...) placement read as a data annotation.
+- Refreshed figures/ to the final submitted exports for Figures 2-5 (PNG, JPG,
+  TIFF, SVG); Figure 1 was already identical.
+- No changes to data, scripts other than the Figure 5 label placement, or the
+  Lean formalization.
+
 ## v1.0.2 — 2026-10-21
 
 Figure release. Code, data and formalization are unchanged from v1.0.1.
