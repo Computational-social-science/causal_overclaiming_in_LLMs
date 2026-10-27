@@ -45,9 +45,6 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.23541463
     description: "Archived release v1.0.3 (this version)"
-  - type: doi
-    value: 10.5281/zenodo.23501242
-    description: "Concept DOI, resolving to the latest version"
 keywords:
   - chain-of-thought
   - prompt engineering

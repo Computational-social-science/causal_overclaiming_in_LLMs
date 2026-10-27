@@ -1,7 +1,8 @@
 # Code and data for “Contingent Chain-of-Thought effects and causal overclaiming in LLMs”
 
 > **Latest release**: v1.0.3 (2026-10-22) — figure release (Figure 5 panel labels placed above the axes; Figure 2–5 exports refreshed).
-> Archived on Zenodo: <https://doi.org/10.5281/zenodo.23501242> (concept, always latest) / <https://doi.org/10.5281/zenodo.23541463> (v1.0.3).
+> Archived on Zenodo: <https://zenodo.org/records/23541463> (version 1.0.3).
+> **Raw data**: the four large archives (raw inference logs and packaged run data) are attached to the release of this repository; see raw/README.md for the file list.
 
 ## What is here
 
