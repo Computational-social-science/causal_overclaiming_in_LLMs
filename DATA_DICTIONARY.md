@@ -52,8 +52,7 @@ Per-cell replicate summary for the five model scales (GSM8K).
 ## tables/fig2_task_heterogeneity_scores.csv
 
 Raw per-run accuracies behind Figure 2 for GSM8K, MMLU and HumanEval (four run-level
-evaluations per prompt). The file also carries CMMLU columns from an early exploratory run;
-they are kept for completeness and are not used in the manuscript.
+evaluations per prompt). CMMLU columns from an early exploratory run are not included.
 
     Instruction    prompting strategy
     <dataset>_R1 … R4   pass@1 in percent for each of four run-level evaluations
