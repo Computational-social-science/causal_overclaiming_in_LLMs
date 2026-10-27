@@ -1,6 +1,6 @@
 # Large raw artifacts (release assets)
 
-These files are excluded from git history and are attached to the **v1.0.3** release of this repository.
+These files are excluded from git history and are attached to the release of this repository.
 Download the archives from the Releases page and unpack them into this directory.
 
 | File | Size | Needed for |
