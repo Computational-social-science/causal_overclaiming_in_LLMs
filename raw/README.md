@@ -6,8 +6,8 @@ Releases page and unpack them into this directory.
 
 | File | Size | Needed for |
 |---|---|---|
-| raw_inference_logs.tar.gz | ~66 MB | raw OpenCompass per-question outputs (3057 files), Fig. 4 heatmap |
-| aime2024_all_data.tar.gz | ~58 MB | packaged AIME 2024 run data, Fig. 2 AIME panel |
+| raw_inference_logs.tar.gz | ~66 MB | raw OpenCompass per-question outputs (2912 files), Fig. 4 heatmap |
+| aime2024_all_data.tar.gz | ~53 MB | packaged AIME 2024 run data, Fig. 2 AIME panel |
 | aime2024_7b_pass1_n64_raw_20260528.tar.gz | ~427 MB | raw 7B AIME runs for Fig. 4 |
 | aime2024_8b_pass1_n64_raw_20260528.tar.gz | ~497 MB | raw 8B AIME runs for Fig. 4 |
 
