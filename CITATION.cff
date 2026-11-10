@@ -41,10 +41,6 @@ authors:
     affiliation: "School of Computer Science and Technology, Zhejiang Gongshang University, Hangzhou 310018, China"
 license: MIT
 repository-code: "https://github.com/Computational-social-science/causal_overclaiming_in_LLMs"
-identifiers:
-  - type: doi
-    value: 10.5281/zenodo.23541463
-    description: "Archived release v1.0.3 (this version)"
 keywords:
   - chain-of-thought
   - prompt engineering
@@ -82,5 +78,5 @@ preferred-citation:
       given-names: "Zhiwen"
   year: 2026
   journal: Patterns (submitted)
-version: "1.0.3"
+version: "1.0.5"
 date-released: "2026-10-22"

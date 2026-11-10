@@ -39,6 +39,7 @@ distribution.
 - The elan toolchain directory is `~/.elan/toolchains/`, with one subdirectory per version.
 - If `lean --version` hangs, elan is usually waiting for a download; check
   `~/.elan/toolchains/*.lock`.
-- Accuracies (in percent) and reflection-marker frequencies are represented uniformly as
-  `Int` at a scale of 100. This avoids floating-point error and does not require the
+- Accuracies (in percent) and reflection-marker frequencies are represented as `Int` at a
+  scale of 100 (percent x 100); the H1 instance uses its own common exact `Int` scale for
+  the eight-setting table. This avoids floating-point error and does not require the
   rational layer of Mathlib.

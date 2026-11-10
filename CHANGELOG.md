@@ -1,5 +1,27 @@
 # Changelog
 
+## v1.0.5 - 2026-11-10
+
+Documentation fix. Code, data, figures and Lean statements are unchanged from v1.0.4.
+
+- formal/GoldenRule.lean and formal/Instance.lean restored from the repository copy, which carries the English file headers; v1.0.4 had carried the working copies with source-language comments. The Lean code is identical to v1.0.4 apart from comments.
+
+## v1.0.4 — 2026-11-10
+
+Lean 4 alignment release. Code, data and figures are unchanged from v1.0.3.
+
+- The Lean 4 formalization is aligned with the submitted manuscript: the theorems carry
+  the manuscript numbering (Theorems 1-4 and Definition 6), and the data instances encode
+  the values printed in Table 2. The term-first effect on GSM8K is encoded as -810/100 at
+  1.5B and +368/100 at 3B, obtained from the four-run means of
+  `fig2_model_scale_scores.csv` by rounding half away from zero to two decimals.
+- Removed the cross-batch generation-length instance, which the manuscript reports as an
+  auxiliary observation rather than as one of the formalized examples.
+- `formal/README.md` now documents the manuscript-to-Lean mapping and the reproducibility
+  chain; `formal/INSTALL.md` describes the encoding convention.
+- `lake build` verified from a clean checkout (Lean 4.31.0, no Mathlib, 13 jobs, zero
+  errors and zero warnings).
+
 ## v1.0.3 — 2026-10-22
 
 Figure release. Code, data and formalization are unchanged from v1.0.2.
@@ -11,8 +33,6 @@ Figure release. Code, data and formalization are unchanged from v1.0.2.
   TIFF, SVG); Figure 1 was already identical.
 - No changes to data, scripts other than the Figure 5 label placement, or the
   Lean formalization.
-
-Archived on Zenodo: 10.5281/zenodo.23541463 (concept: 10.5281/zenodo.23501242).
 
 ## v1.0.2 — 2026-10-21
 

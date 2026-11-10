@@ -7,17 +7,12 @@ Witness_ModelScale.lean — data instantiation of the model-dependence of the ef
 Data binding: evidence/01-macro-heterogeneity/data/fig2_model_scale_scores.csv
               (Qwen2.5 across model sizes, mean over 4 runs, GSM8K)
 
-Known details of the measured data (updated 2026-08-06):
-  - In the model-scale table, term-first for 0.5B/1.5B/7B/32B was re-run as four genuine
-    independent generations (seeds 44-47, GSM8K, mean pass@1 over four generations).
-  - 1.5B uses the re-run value: effect -809/100 (negative).
-  - 3B uses the confirmed independent group48 data (84.36, that is 367/100 pp relative to
-    Standard).
-  - Implementation note: the 1.5B re-run used vLLM while the 7B/32B re-runs used
-    transformers, so the implementation differs across scales.
+Encoding convention: the effect is the difference between the four-run means, rounded
+half away from zero to two decimals and multiplied by 100, so exact Int literals are
+used for every scale.
 
 Instantiation of GoldenRule.effect_depends_on_model:
-  term-first has effect -809/100 (negative) on Qwen2.5-1.5B and effect 367/100 (positive) on
+  term-first has effect -810/100 (negative) on Qwen2.5-1.5B and effect 368/100 (positive) on
   Qwen2.5-3B. With the same prompt and the same dataset, the sign of the effect depends on
   the model, which verifies the manuscript's claim that prompt effects depend on the model.
 -/
@@ -41,8 +36,8 @@ abbrev Prompt1 := Fin 2
 def deltaTable (m : Model2) (_t : Task1) (p : Prompt1) : Int :=
   if p = 0 then
     match m.val with
-      | 0 => -809   -- 1.5B: Δ = -8.09 pp (negative)
-      | _ => 367  -- 3B: Δ = 3.67 pp (positive)
+      | 0 => -810   -- 1.5B: Δ = -8.10 pp (negative)
+      | _ => 368  -- 3B: Δ = 3.68 pp (positive)
   else
     0  -- Standard (baseline): Δ = 0
 

@@ -2,26 +2,25 @@
 MethodologyCore.lean — core abstract lemmas on the non-monotonicity of surface metrics used
 as proxies for answer quality (measure-type-agnostic layer).
 
-The file provides two abstract lemmas that are independent of the concrete measure type:
+The file provides two abstract lemmas that are independent of the concrete measure type.
+They formalize Theorems 2 and 3 of the manuscript's methods section:
 
-  * not_function_of (Theorem M2): the same metric value corresponds to different accuracies,
+  * not_function_of (Theorem 2): the same metric value corresponds to different accuracies,
     so the metric is not a deterministic function of accuracy (it is not a function proxy).
-    This formalizes the paper's observation that premature convergence (PC) and delayed
-    commitment (DC) have the same peak-layer distribution (10/15 at L26 and 5/15 at L27 for
-    both), yet their 15-question accuracies differ (13.3% vs 26.7%).
-  * not_monotone_sequence (Theorem M3): an ordered sequence of evaluated cells that first
-    falls and then rises contains an order reversal, so the sequence is neither non-increasing
-    nor non-decreasing.
-    This formalizes the model-scale counterexample: the term-first gain Δ =
-    [+1694, -809, +367, +973, +566] (percent x 100, 0.5B to 32B) first falls and then rises
-    as scale increases (1.5B is the trough, matching the re-run value -8.09 pp; see
-    deltaTable in Witness_ModelScale.lean).
+    This formalizes the paper's observation that underthinking and normal-thinking have the
+    same peak-layer distribution (L26 count 10 for both), yet their 15-question accuracies
+    differ (13.3% vs 26.7%).
+  * not_monotone_sequence (Theorem 3): an ordered sequence of three evaluated cells that
+    first falls and then rises contains an order reversal, so the sequence is neither
+    non-increasing nor non-decreasing.
+    This formalizes the model-scale example: the term-first gain
+    Δ = [+1694, -810, +368] (percent x 100, 0.5B to 3B) first falls and then rises as the
+    scale increases (1.5B is the trough); see deltaSeq in MethodologyWitness.lean.
 
-Relation to GoldenRule.no_universal_metric (Theorem 9):
-  GoldenRule.no_universal_metric already is a measure-type-agnostic meta-theorem: it takes
-  metric and acc as type parameters and refutes strict monotonicity with a counterexample
-  pair. This file adds two neighbouring propositions: the same metric value can stand for
-  different quality (no function proxy), and a sequence can be non-monotone.
+Relation to GoldenRule.no_universal_metric: that theorem is already measure-type-agnostic
+(it takes metric and acc as type parameters and refutes strict monotonicity with a
+counterexample pair). This file adds two neighbouring propositions: the same metric value
+can stand for different quality (no function proxy), and a sequence can be non-monotone.
 -/
 
 namespace MethodologyCore
